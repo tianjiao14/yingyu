@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>文一墨的三国演说大冒险 🌸</title>
+    <style>
+        :root {
+            --primary-color: #ff7675;
+            --success-color: #2ecc71;
+            --accent-color: #f1c40f;
+            --btn-active: #d63031;
+        }
+        /* 针对平板进行视口和手势防误触优化 */
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        h1 { color: #d32f2f; margin-bottom: 5px; font-size: 32px; }
+        
+        /* 大颗粒度关卡地图，极度适合平板手指点击 */
+        .map-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 25px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            border: 2px dashed #ffb8b8;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .level-node {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #dfe6e9;
+            color: #b2bec3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            border: 3px solid #b2bec3;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .level-node.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: #d63031;
+            box-shadow: 0 0 12px rgba(255, 118, 117, 0.6);
+            transform: scale(1.1);
+        }
+        .level-node.cleared {
+            background: var(--success-color);
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        /* 导入与语速控制区域 */
+        .config-zone {
+            background: #fff;
+            border: 2px dashed var(--primary-color);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .speed-control {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #4a4a4a;
+        }
+        /* 加大平板上滑动条的尺寸 */
+        input[type=range] {
+            width: 200px;
+            height: 10px;
+            cursor: pointer;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 35px 25px;
+            box-shadow: 0 10px 30px rgba(211, 47, 47, 0.06);
+            border: 2px solid #ffe0e0;
+            margin-bottom: 25px;
+            min-height: 200px;
+        }
+        .english-text { font-size: 26px; font-weight: bold; color: #2c3e50; line-height: 1.6; margin-bottom: 15px; }
+        .chinese-text { font-size: 19px; color: #7f8c8d; }
+        .score-box { font-size: 50px; font-weight: bold; margin-top: 15px; }
+        
+        /* 适合大拇指点击的大号按钮 */
+        .controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; margin-top: 25px; }
+        button {
+            background-color: var(--primary-color);
+            color: white; border: none; padding: 16px 35px;
+            font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:active { background-color: var(--btn-active); transform: scale(0.98); }
+        button:disabled { background-color: #b2bec3; cursor: not-allowed; box-shadow: none; }
+        #micBtn { background-color: #0984e3; }
+        #micBtn:active { background-color: #00cec9; }
+        #micBtn.recording { background-color: #e17055; animation: pulse 1s infinite; }
+        #passBtn { background-color: var(--success-color); }
+        #passBtn:active { background-color: #27ae60; }
+
+        .star-reward { font-size: 26px; color: var(--accent-color); margin-top: 15px; min-height: 35px; letter-spacing: 3px; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        #badge { display: none; font-size: 55px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1>🌸 温一默的三国演说大冒险 🌸</h1>
+    
+    <div class="config-zone">
+        <input type="file" id="audioFile" accept="audio/*" style="display: none;" onchange="handleAudioUpload(this)">
+        <label for="audioFile" style="cursor: pointer; font-weight: bold; color: var(--primary-color); font-size: 18px; display: block; padding: 10px;">
+            🎵 点击这里导入您的完整录音 (MP3/WAV)
+        </label>
+        <div id="audioStatus" style="font-size: 14px; color: #95a5a6; margin-top: 5px;">导入后系统会自动按句切分</div>
+        
+        <!-- 实时语速调节滑动条 -->
+        <div class="speed-control">
+            <span>🐢 减慢</span>
+            <input type="range" id="speedRange" min="0.5" max="1.5" step="0.05" value="1.0" oninput="updateSpeedLabel(this.value)">
+            <span>🚀 加快</span>
+            <span id="speedLabel" style="background: #eee; padding: 2px 8px; border-radius: 5px;">1.0x</span>
+        </div>
+    </div>
+
+    <!-- 冒险关卡地图 -->
+    <div class="map-container" id="levelMap"></div>
+    <div class="star-reward" id="starContainer"></div>
+
+    <div class="card">
+        <div id="badge">👑 蜀国小英雄勋章 👑</div>
+        <div class="english-text" id="engText">请先在上方导入爸爸/妈妈的录音哦！</div>
+        <div class="chinese-text" id="zhText">准备好了吗？冒险马上开始！</div>
+        <div class="score-box" id="scoreDisplay"></div>
+    </div>
+
+    <div class="controls">
+        <button id="ttsBtn" onclick="playParentAudio()" disabled>🔊 听家长读</button>
+        <button id="micBtn" onclick="toggleListening()" disabled>🎤 我来挑战</button>
+        <button id="passBtn" onclick="forcePass()" style="display: none;">⭐ 爸妈判定通过</button>
+    </div>
+
+    <div id="statusMessage" style="margin-top: 20px; color: #7f8c8d; font-size: 16px; padding: 0 10px;"></div>
+
+    <script>
+        // 核心脚本数据[cite: 1]
+        const story = [
+            { en: "Hello everyone, I’m Wen Yimo from Grade two.", zh: "大家好，我是二年级的温一默。[cite: 1]" },
+            { en: "Sichuan is a beautiful place with lots of Three Kingdoms culture!", zh: "四川是一个美丽的地方，有许多三国文化！[cite: 1]" },
+            { en: "Today, I want to tell you a famous story about three brave heroes.", zh: "今天，我想给你们讲一个关于三位勇敢英雄的著名故事。[cite: 1]" },
+            { en: "Long, long ago, there were three men.", zh: "很久很久以前，有三个人。[cite: 1]" },
+            { en: "Their names were Liu Bei, Guan Yu, and Zhang Fei.", zh: "他们的名字叫刘备、关羽和张飞。[cite: 1]" },
+            { en: "They all wanted to help people.", zh: "他们都想帮助人们。[cite: 1]" },
+            { en: "One day, they met in a beautiful garden. It was full of pink peach blossoms.", zh: "一天，他们在美丽的后花园相遇。那里开满了粉红色的桃花。[cite: 1]" },
+            { en: "They looked at the flowers and made a great promise.", zh: "他们看着桃花，许下了伟大的承诺。[cite: 1]" },
+            { en: "They said: 'Let’s be brothers! Let’s work together and help our country!'", zh: "他们说：‘我们结拜为兄弟吧！让我们齐心协力，报效国家！’[cite: 1]" },
+            { en: "From that day on, they became a family.", zh: "从那天起，他们成为了一家人。[cite: 1]" },
+            { en: "Did they keep their promise? Yes, they did!", zh: "他们守信了吗？是的，他们做到了！[cite: 1]" },
+            { en: "When they faced big problems, they never gave up. They fought together, they laughed together, and they helped each other every day.", zh: "面对大困难时，他们从未放弃。他们一起战斗，一起欢笑，每天互相帮助。[cite: 1]" },
+            { en: "They were like fingers on a hand. One finger is weak, but when they tie together, they make a strong fist!", zh: "他们就像一只手上的手指。一根手指是脆弱的，但当它们紧握在一起，就能形成一个有力的拳头！[cite: 1]" },
+            { en: "This story teaches us a great lesson: Unity is strength.", zh: "这个故事教会了我们一个深刻的道理：团结就是力量。[cite: 1]" },
+            { en: "Just like the three brothers, we can do great things if we work together with our friends.", zh: "就像这三兄弟一样，如果我们和朋友一起努力，也能做出伟大的事情。[cite: 1]" },
+            { en: "Welcome to Sichuan, and thank you for listening!", zh: "欢迎来到四川，谢谢大家的聆听！[cite: 1]" }
+        ];
+
+        let currentIndex = 0;
+        let clearedLevels = new Set();
+        let audioBuffer = null;
+        let audioContext = null;
+        let currentSourceNode = null; // 用于追踪当前正在播放的声源
+        let timestamps = [];
+        let recognition;
+        let isListening = false;
+        let currentPlaybackRate = 1.0;
+
+        // 初始化地图
+        const map = document.getElementById('levelMap');
+        story.forEach((_, idx) => {
+            const node = document.createElement('div');
+            node.className = `level-node ${idx === 0 ? 'active' : ''}`;
+            node.id = `node-${idx}`;
+            node.innerText = idx + 1;
+            node.onclick = () => loadLevel(idx);
+            map.appendChild(node);
+        });
+
+        function updateSpeedLabel(val) {
+            currentPlaybackRate = parseFloat(val);
+            document.getElementById('speedLabel').innerText = val + "x";
+        }
+
+        // 初始化 AudioContext（兼容平板点击策略）
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function handleAudioUpload(input) {
+            initAudioContext();
+            const file = input.files[0];
+            if (!file) return;
+            document.getElementById('audioStatus').innerText = "⚡ 正在智能解析音频，请稍候...";
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                audioContext.decodeAudioData(e.target.result, function(buffer) {
+                    audioBuffer = buffer;
+                    analyzeAudio(buffer);
+                }, function(err) {
+                    document.getElementById('audioStatus').innerText = "❌ 音频解码失败，请尝试更换录音格式。";
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function analyzeAudio(buffer) {
+            const rawData = buffer.getChannelData(0); 
+            const sampleRate = buffer.sampleRate;
+            const segmentSize = Math.floor(sampleRate * 0.2); 
+            const segments = Math.floor(rawData.length / segmentSize);
+            
+            let energies = [];
+            for (let i = 0; i < segments; i++) {
+                let sum = 0;
+                for (let j = 0; j < segmentSize; j++) {
+                    sum += Math.abs(rawData[i * segmentSize + j]);
+                }
+                energies.push(sum / segmentSize);
+            }
+
+            let silencePoints = [];
+            const threshold = 0.012; 
+            let minSilenceDuration = 4; 
+            let silenceCount = 0;
+
+            for (let i = 0; i < energies.length; i++) {
+                if (energies[i] < threshold) {
+                    silenceCount++;
+                } else {
+                    if (silenceCount >= minSilenceDuration) {
+                        silencePoints.push((i - silenceCount / 2) * 0.2);
+                    }
+                    silenceCount = 0;
+                }
+            }
+
+            timestamps = [0];
+            silencePoints.forEach(p => {
+                if (p - timestamps[timestamps.length - 1] > 2.0) { 
+                    timestamps.push(p);
+                }
+            });
+            timestamps.push(buffer.duration);
+
+            document.getElementById('audioStatus').innerText = `✅ 切分完成！快调好语速，开始大冒险吧！`;
+            document.getElementById('ttsBtn').disabled = false;
+            document.getElementById('micBtn').disabled = false;
+            document.getElementById('passBtn').style.display = 'inline-block';
+            loadLevel(0);
+        }
+
+        // 核心优化：完美支持语速调节的音频片段播放
+        function playParentAudio() {
+            initAudioContext();
+            if (!audioBuffer || timestamps.length === 0) return;
+            
+            // 如果当前已经在播放，先强行停止
+            if (currentSourceNode) {
+                try { currentSourceNode.stop(); } catch(e) {}
+            }
+            
+            let start = timestamps[currentIndex] || 0;
+            let end = timestamps[currentIndex + 1] || audioBuffer.duration;
+            let duration = end - start;
+
+            let source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            
+            // 实时注入语速滑块的值
+            source.playbackRate.value = currentPlaybackRate;
+            
+            source.connect(audioContext.destination);
+            
+            // 考虑语速折算实际播放的时长
+            source.start(0, start, duration);
+            currentSourceNode = source;
+            
+            document.getElementById('statusMessage').innerText = `🎵 正在以 ${currentPlaybackRate}x 语速播放示范发音...`;
+        }
+
+        function loadLevel(idx) {
+            if (idx > 0 && !clearedLevels.has(idx - 1) && idx !== currentIndex) {
+                document.getElementById('statusMessage').innerText = "🔒 这一关还被锁着呢，先通过前一关吧！";
+                return;
+            }
+            if (currentSourceNode) { try { currentSourceNode.stop(); } catch(e) {} }
+            
+            currentIndex = idx;
+            document.getElementById('engText').innerText = story[idx].en;
+            document.getElementById('zhText').innerText = story[idx].zh;
+            document.getElementById('scoreDisplay').innerText = "";
+            document.getElementById('statusMessage').innerText = "请点击“听家长读”或者直接“我来挑战”！";
+            
+            document.querySelectorAll('.level-node').forEach((node, nIdx) => {
+                node.className = 'level-node';
+                if (clearedLevels.has(nIdx)) node.classList.add('cleared');
+                if (nIdx === currentIndex) node.classList.add('active');
+            });
+            updateStars();
+        }
+
+        function updateStars() {
+            let stars = "";
+            for (let i = 0; i < story.length; i++) {
+                stars += clearedLevels.has(i) ? "⭐" : "⚪";
+            }
+            document.getElementById('starContainer').innerText = stars;
+
+            if (clearedLevels.size === story.length) {
+                document.getElementById('badge').style.display = 'block';
+                document.getElementById('engText').innerText = "🎉 恭喜温一默！通关全部挑战！[cite: 1]";
+                document.getElementById('zhText').innerText = "你已经掌握了桃园三结义的全部秘密，是个真正的蜀国小英雄啦！";
+                playWinSound();
+            }
+        }
+
+        function forcePass() {
+            clearedLevels.add(currentIndex);
+            playCorrectSound();
+            if (currentIndex < story.length - 1) {
+                loadLevel(currentIndex + 1);
+            } else {
+                updateStars();
+            }
+        }
+
+        // 平板移动端语音识别兼容性处理
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                document.getElementById('micBtn').className = "recording";
+                document.getElementById('micBtn').innerText = "🛑 正在听...";
+            };
+            recognition.onend = () => {
+                isListening = false;
+                document.getElementById('micBtn').className = "";
+                document.getElementById('micBtn').innerText = "🎤 我来挑战";
+            };
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                let match = 0;
+                let arr1 = story[currentIndex].en.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").split(" ");
+                let arr2 = text.toLowerCase().split(" ");
+                arr1.forEach(w => { if(arr2.includes(w)) match++ });
+                let score = Math.round((match / arr1.length) * 100);
+
+                document.getElementById('scoreDisplay').innerText = score + "分";
+                if (score >= 6) { // 考虑到平板麦克风距离，只要匹配到部分核心词即可通过
+                    document.getElementById('statusMessage').innerHTML = `👍 挑战成功！你读的是: "${text}"`;
+                    forcePass();
+                } else {
+                    document.getElementById('statusMessage').innerHTML = `😮 差一点点！你读的是: "${text}"，再跟爸爸妈妈的声音学一次吧！`;
+                    playErrorSound();
+                }
+            };
+        }
+
+        function toggleListening() {
+            initAudioContext();
+            if (isListening) recognition.stop(); else recognition.start();
+        }
+
+        // 浏览器端游戏音效
+        function playCorrectSound() {
+            if(!audioContext) return;
+            let osc = audioContext.createOscillator();
+            let gain = audioContext.createGain();
+            osc.connect(gain); gain.connect(audioContext.destination);
+            osc.frequency.setValueAtTime(523.25, audioContext.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+            osc.start(); osc.stop(audioContext.currentTime + 0.2);
+        }
+
+        function playErrorSound() {
+            if(!audioContext) return;
+            let osc = audioContext.createOscillator();
+            let gain = audioContext.createGain();
+            osc.connect(gain); gain.connect(audioContext.destination);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(293.66, audioContext.currentTime);
+            gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+            osc.start(); osc.stop(audioContext.currentTime + 0.15);
+        }
+
+        function playWinSound() {
+            if(!audioContext) return;
+            let notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                let osc = audioContext.createOscillator();
+                let gain = audioContext.createGain();
+                osc.connect(gain); gain.connect(audioContext.destination);
+                osc.frequency.setValueAtTime(freq, audioContext.currentTime + i * 0.08);
+                gain.gain.setValueAtTime(0.15, audioContext.currentTime + i * 0.08);
+                osc.start(audioContext.currentTime + i * 0.08);
+                osc.stop(audioContext.currentTime + i * 0.08 + 0.1);
+            });
+        }
+    </script>
+</body>
+</html>
