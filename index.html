@@ -540,10 +540,92 @@
             };
         }
 
-        function toggleListening() {
-            initAudioContext();
-            if (isListening) recognition.stop(); else recognition.start();
+       // 替换掉之前旧的 toggleListening 函数和识别逻辑，改为“防抖动完整句”逻辑
+let recognition;
+let isKidsListening = false;
+let finalTranscript = ""; // 缓存整句识别结果
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = true; // 开启连续监听
+    recognition.interimResults = true; // 开启中间结果显示
+
+    recognition.onstart = () => {
+        isKidsListening = true;
+        finalTranscript = ""; // 重置缓冲区
+        document.getElementById('micBtn').className = "recording";
+        document.getElementById('micBtn').innerText = "🛑 我在听...";
+        document.getElementById('statusMessage').innerText = "🎤 正在倾听，请完整读完，读完请稍作停顿...";
+    };
+
+    recognition.onresult = (event) => {
+        let interimTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
         }
+        
+        // 显示当前读到的内容，但暂不触发评分
+        document.getElementById('engText').innerText = finalTranscript || interimTranscript;
+    };
+
+    recognition.onend = () => {
+        // 只有当识别器停止（小朋友读完停顿）后，才触发最终评分
+        if (isKidsListening) {
+            // 给系统一点缓冲，如果还有声音说明是在换气，继续监听
+            setTimeout(() => {
+                if (finalTranscript.length > 5) {
+                    processFinalScore(finalTranscript);
+                }
+            }, 1500); 
+        }
+    };
+}
+
+function processFinalScore(text) {
+    const node = nodesData[currentIndex];
+    let targetText = node.type === 'normal' ? node.en : nodesData[node.targetNodesInfo[node.targetNodesInfo.length - 1].mapIdx].en;
+    
+    // 计算对比度：计算原句在识别文本中出现的比例
+    let targetWords = targetText.toLowerCase().split(" ").filter(Boolean);
+    let spokenWords = text.toLowerCase().split(" ").filter(Boolean);
+    
+    let matchCount = 0;
+    targetWords.forEach(w => { if(spokenWords.includes(w)) matchCount++ });
+    
+    // 强制完整度逻辑：读对 80% 以上才给高分，否则提醒重读
+    let accuracy = matchCount / targetWords.length;
+    let finalScore = Math.floor(accuracy * 100);
+
+    if (accuracy >= 0.7) { // 只有读得非常完整才判定通过
+        document.getElementById('scoreDisplay').innerText = finalScore + "分";
+        document.getElementById('statusMessage').innerHTML = `🌟 太棒了！你的演说非常完整！`;
+        forcePass();
+    } else {
+        document.getElementById('scoreDisplay').innerText = finalScore + "分";
+        document.getElementById('statusMessage').innerHTML = `💡 读得不错，但还需要更完整一点！加油！`;
+        playErrorSound();
+        // 重置状态
+        document.getElementById('micBtn').className = "";
+        document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
+        isKidsListening = false;
+    }
+}
+
+function toggleListening() {
+    initAudioContext();
+    if (isKidsListening) {
+        recognition.stop(); 
+        isKidsListening = false;
+    } else {
+        recognition.start();
+    }
+}
 
         function playCorrectSound() {
             let osc = audioContext.createOscillator(); let gain = audioContext.createGain();
