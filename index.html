@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文一墨的三国演说大冒险 🌸</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="三国演说大冒险">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <title>温一默的三国演说大冒险 🌸</title>
     <style>
         :root {
             --primary-color: #ff7675;
@@ -22,6 +27,8 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            /* 适配全面屏平板的刘海/安全区域 */
+            padding-top: calc(env(safe-area-inset-top) + 20px);
         }
         h1 { color: #d32f2f; margin-bottom: 5px; font-size: 32px; }
         
@@ -151,21 +158,21 @@
     <script>
         const story = [
             { en: "Hello everyone, I’m Wen Yimo from Grade two.", zh: "大家好，我是二年级的温一默。" },
-            { en: "Sichuan is a beautiful place with lots of Three Kingdoms culture!", zh: "四川是一个美丽的地方，有许多三国文化！[cite: 1]" },
-            { en: "Today, I want to tell you a famous story about three brave heroes.", zh: "今天，我想给你们讲一个关于三位勇敢英雄的著名故事。[cite: 1]" },
-            { en: "Long, long ago, there were three men.", zh: "很久很久以前，有三个人。[cite: 1]" },
-            { en: "Their names were Liu Bei, Guan Yu, and Zhang Fei.", zh: "他们的名字叫刘备、关羽和张飞。[cite: 1]" },
-            { en: "They all wanted to help people.", zh: "他们都想帮助人们。[cite: 1]" },
-            { en: "One day, they met in a beautiful garden. It was full of pink peach blossoms.", zh: "一天，他们在美丽的后花园相遇。那里开满了粉红色的桃花。[cite: 1]" },
-            { en: "They looked at the flowers and made a great promise.", zh: "他们看着桃花，许下了伟大的承诺。[cite: 1]" },
-            { en: "They said: 'Let’s be brothers! Let’s work together and help our country!'", zh: "他们说：‘我们结拜为兄弟吧！让我们齐心协力，报效国家！’[cite: 1]" },
-            { en: "From that day on, they became a family.", zh: "从那天起，他们成为了一家人。[cite: 1]" },
-            { en: "Did they keep their promise? Yes, they did!", zh: "他们守信了吗？是的，他们做到了！[cite: 1]" },
-            { en: "When they faced big problems, they never gave up. They fought together, they laughed together, and they helped each other every day.", zh: "面对大困难时，他们从未放弃。他们一起战斗，一起欢笑，每天互相帮助。[cite: 1]" },
-            { en: "They were like fingers on a hand. One finger is weak, but when they tie together, they make a strong fist!", zh: "他们就像一只手上的手指。一根手指是脆弱的，但当它们紧握在一起，就能形成一个有力的拳头！[cite: 1]" },
-            { en: "This story teaches us a great lesson: Unity is strength.", zh: "这个故事教会了我们一个深刻的道理：团结就是力量。[cite: 1]" },
-            { en: "Just like the three brothers, we can do great things if we work together with our friends.", zh: "就像这三兄弟一样，如果我们和朋友一起努力，也能做出伟大的事情。[cite: 1]" },
-            { en: "Welcome to Sichuan, and thank you for listening!", zh: "欢迎来到四川，谢谢大家的聆听！[cite: 1]" }
+            { en: "Sichuan is a beautiful place with lots of Three Kingdoms culture!", zh: "四川是一个美丽的地方，有许多三国文化！" },
+            { en: "Today, I want to tell you a famous story about three brave heroes.", zh: "今天，我想给你们讲一个关于三位勇敢英雄的著名故事。" },
+            { en: "Long, long ago, there were three men.", zh: "很久很久以前，有三个人。" },
+            { en: "Their names were Liu Bei, Guan Yu, and Zhang Fei.", zh: "他们的名字叫刘备、关羽和张飞。" },
+            { en: "They all wanted to help people.", zh: "他们都想帮助人们。" },
+            { en: "One day, they met in a beautiful garden. It was full of pink peach blossoms.", zh: "一天，他们在美丽的后花园相遇。那里开满了粉红色的桃花。" },
+            { en: "They looked at the flowers and made a great promise.", zh: "他们看着桃花，许下了伟大的承诺。" },
+            { en: "They said: 'Let’s be brothers! Let’s work together and help our country!'", zh: "他们说：‘我们结拜为兄弟吧！让我们齐心协力，报效国家！’" },
+            { en: "From that day on, they became a family.", zh: "从那天起，他们成为了一家人。" },
+            { en: "Did they keep their promise? Yes, they did!", zh: "他们守信了吗？是的，他们做到了！" },
+            { en: "When they faced big problems, they never gave up. They fought together, they laughed together, and they helped each other every day.", zh: "面对大困难时，他们从未放弃。他们一起战斗，一起欢笑，每天互相帮助。" },
+            { en: "They were like fingers on a hand. One finger is weak, but when they tie together, they make a strong fist!", zh: "他们就像一只手上的手指。一根手指是脆弱的，但当它们紧握在一起，就能形成一个有力的拳头！" },
+            { en: "This story teaches us a great lesson: Unity is strength.", zh: "这个故事教会了我们一个深刻的道理：团结就是力量。" },
+            { en: "Just like the three brothers, we can do great things if we work together with our friends.", zh: "就像这三兄弟一样，如果我们和朋友一起努力，也能做出伟大的事情。" },
+            { en: "Welcome to Sichuan, and thank you for listening!", zh: "欢迎来到四川，谢谢大家的聆听！" }
         ];
 
         let currentIndex = 0;
@@ -318,7 +325,7 @@
 
             if (clearedLevels.size === story.length) {
                 document.getElementById('badge').style.display = 'block';
-                document.getElementById('engText').innerText = "🎉 恭喜温一默！通关全部挑战！[cite: 1]";
+                document.getElementById('engText').innerText = "🎉 恭喜温一默！通关全部挑战！";
                 document.getElementById('zhText').innerText = "你已经掌握了桃园三结义的全部秘密，是个真正的蜀国小英雄啦！";
                 playWinSound();
             }
@@ -334,7 +341,6 @@
             }
         }
 
-        // 初始化语音识别并添加移动端防卡死提示
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -346,7 +352,7 @@
                 isListening = true;
                 document.getElementById('micBtn').className = "recording";
                 document.getElementById('micBtn').innerText = "🛑 正在听...";
-                document.getElementById('statusMessage').innerText = "🎤 平板正在听，请大声朗读吧！读完停顿即可。";
+                document.getElementById('statusMessage').innerText = "🎤 平板正在听，请大声朗读吧！";
             };
             
             recognition.onend = () => {
@@ -364,7 +370,7 @@
                 let score = Math.round((match / arr1.length) * 100);
 
                 document.getElementById('scoreDisplay').innerText = score + "分";
-                if (score >= 40) { // 调低移动端打分阈值，40分以上即判定过关
+                if (score >= 40) { 
                     document.getElementById('statusMessage').innerHTML = `<span style="color:var(--success-color)">👍 挑战成功！你读的是: "${text}"</span>`;
                     setTimeout(forcePass, 1200);
                 } else {
@@ -374,17 +380,12 @@
             };
 
             recognition.onerror = (event) => {
-                console.error(event.error);
                 if (event.error === 'not-allowed') {
-                    document.getElementById('statusMessage').innerHTML = "<span style='color:red'>❌ 平板拒绝了麦克风权限！请去系统设置里允许Safari/Chrome使用麦克风。</span>";
+                    document.getElementById('statusMessage').innerHTML = "<span style='color:red'>❌ 平板拒绝了麦克风权限！请允许浏览器使用麦克风。</span>";
                 } else if (event.error === 'no-speech') {
-                    document.getElementById('statusMessage').innerHTML = "<span style='color:orange'>⏰ 没有听到声音，请离麦克风近一点重新大声读。</span>";
-                } else {
-                    document.getElementById('statusMessage').innerHTML = "❌ 识别遇到小脾气 (" + event.error + ")，请重试或让爸妈点击放行。";
+                    document.getElementById('statusMessage').innerHTML = "<span style='color:orange'>⏰ 没有听到声音，请大声读。</span>";
                 }
             };
-        } else {
-            document.getElementById('statusMessage').innerHTML = "<span style='color:red'>❌ 当前浏览器内置的核心语音识别组件未响应，建议使用最新的本地 Chrome 浏览器或自带的 Safari 浏览器。</span>";
         }
 
         function toggleListening() {
