@@ -1,0 +1,17 @@
+{
+  "name": "文一墨的演说大冒险",
+  "short_name": "演说大冒险",
+  "description": "文一墨专属的三国英语演说学习App",
+  "start_url": "ThreeKingdomsPerfect.html",
+  "display": "standalone",
+  "background_color": "#fff5f5",
+  "theme_color": "#ff7675",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
