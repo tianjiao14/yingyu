@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/peach.png">
 <link rel="icon" href="https://img.icons8.com/color/512/peach.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    
-<title>文一墨的纯英演说大冒险 🌸</title>
+<title>温一默的纯英演说大冒险 🌸</title>
     <style>
         :root {
             --primary-color: #ff7675;
@@ -95,7 +95,7 @@
 </head>
 <body>
 
-    <h1>🌸 文一墨的纯英演说大冒险 🌸</h1>
+    <h1>🌸 温一默的纯英演说大冒险 🌸</h1>
     
     <div class="import-zone">
         <label style="font-weight: bold; color: #c0392b;">✍️ 第一步：把纯英文演讲稿贴到这里（严格一句一行，系统将完全按这里的换行划分关卡）</label>
@@ -143,7 +143,7 @@
         let clearedLevels = new Set();
         let audioBuffer = null;
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let sentenceTimestamps = []; // 智能侦测出的呼吸换气点
+        let sentenceTimestamps = []; 
         let isListening = false;
         let currentPlaybackRate = 1.0;
         let highlightTimer = null;
@@ -153,7 +153,6 @@
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
-        // 页面启动自动加载缓存剧本
         window.addEventListener('DOMContentLoaded', () => {
             const cachedText = localStorage.getItem('yimo_speech_text_v5');
             if (cachedText) {
@@ -200,11 +199,10 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // 终极黑科技：根据需要切分的句数（如19句），全自动寻找前 18 次最长的呼吸/停顿间隙！
         function sliceAudioIntelligently(buffer, numLines) {
             const rawData = buffer.getChannelData(0);
             const sampleRate = buffer.sampleRate;
-            const stepSize = Math.floor(sampleRate * 0.05); // 以50毫秒为单位扫描
+            const stepSize = Math.floor(sampleRate * 0.05); 
             const segments = Math.floor(rawData.length / stepSize);
 
             let energies = [];
@@ -219,7 +217,6 @@
                 totalEnergy += avg;
             }
 
-            // 动态底噪阈值：取平均能量的 25% 作为静音/呼吸的判断线
             let avgEnergy = totalEnergy / energies.length;
             let threshold = avgEnergy * 0.25; 
 
@@ -232,7 +229,6 @@
                     currentGap.length += 0.05;
                 } else {
                     if (currentGap) {
-                        // 过滤掉极短的停顿，保留大于 0.2秒的换气空隙
                         if (currentGap.length > 0.2) {
                             silenceGaps.push(currentGap);
                         }
@@ -246,18 +242,14 @@
             sentenceTimestamps = [0];
 
             if (silenceGaps.length >= numCuts && numCuts > 0) {
-                // 找出时间最长的那 N-1 个大停顿
                 silenceGaps.sort((a, b) => b.length - a.length);
                 let selectedGaps = silenceGaps.slice(0, numCuts);
-                // 再把它们按照播放的先后顺序排列
                 selectedGaps.sort((a, b) => a.start - b.start);
 
                 selectedGaps.forEach(gap => {
-                    // 完美的切分点就在停顿的正中间
                     sentenceTimestamps.push(parseFloat((gap.start + gap.length / 2).toFixed(3)));
                 });
             } else {
-                // 备用兜底方案：如果环境太嘈杂，按字数比例切分
                 let wordCounts = story.map(sentence => sentence.split(" ").filter(Boolean).length);
                 let totalWords = wordCounts.reduce((a, b) => a + b, 0) || 1;
                 let currentAccumulatedTime = 0;
@@ -273,17 +265,14 @@
             build31GameMap(story.length);
         }
 
-        // 完美修复的逻辑：关卡数字死死对应原剧本的行数！
         function build31GameMap(totalSentencesCount) {
             nodesData = [];
             let comboTracker = [];
 
             story.forEach((sentence, idx) => {
-                // label 强行使用剧本的行号（idx + 1），防止 BOSS 顶占数字位置
                 nodesData.push({ type: 'normal', scriptIdx: idx, label: idx + 1, en: sentence });
                 comboTracker.push({ scriptIdx: idx, mapIdx: nodesData.length - 1 });
 
-                // 满 3 句追加一个 BOSS 大招关
                 if (comboTracker.length === 3 || idx === story.length - 1) {
                     nodesData.push({ type: 'boss', targetNodesInfo: [...comboTracker], label: 'BOSS' });
                     comboTracker = [];
@@ -445,21 +434,27 @@
             updateStars();
         }
 
+        // 修改点 1：重写完整度占比打分机制，杜绝重复刷分，提高精确度
         function calculateKidsComboScore(node, recognized) {
             let targetText = "";
             if (node.type === 'normal') targetText = node.en;
             else node.targetNodesInfo.forEach(info => { targetText += " " + nodesData[info.mapIdx].en; });
 
             let arr1 = targetText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").split(" ").filter(Boolean);
-            let arr2 = recognized.toLowerCase().split(" ").filter(Boolean);
+            let arr2 = recognized.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").split(" ").filter(Boolean);
             
             let match = 0;
-            arr1.forEach(w => { if(arr2.includes(w)) match++ });
-            let baseRate = match / arr1.length;
+            let tempArr2 = [...arr2];
+            arr1.forEach(w => { 
+                let idx = tempArr2.indexOf(w);
+                if(idx !== -1) {
+                    match++;
+                    tempArr2.splice(idx, 1);
+                }
+            });
             
-            if (baseRate >= 0.25) return Math.min(100, Math.floor(93 + (baseRate * 7))); 
-            else if (baseRate > 0) return 76;
-            return 35; 
+            let baseRate = match / arr1.length;
+            return Math.min(100, Math.floor(baseRate * 100));
         }
 
         function updateStars() {
@@ -472,7 +467,7 @@
 
             if (clearedLevels.size === nodesData.length && nodesData.length > 0) {
                 document.getElementById('badge').style.display = 'block';
-                document.getElementById('engText').innerText = "🎉 恭喜文一墨通关全部大挑战！成为演说小冠军！";
+                document.getElementById('engText').innerText = "🎉 恭喜温一默通关全部大挑战！成为演说小冠军！";
             }
         }
 
@@ -498,11 +493,19 @@
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
             
+            // 修改点 2：开启连续倾听流式拦截机制
+            recognition.continuous = true; 
+            recognition.interimResults = true; 
+            
+            let silenceTimer = null;
+            let finalTranscript = "";
+            
             recognition.onstart = () => {
                 isListening = true;
+                finalTranscript = "";
                 document.getElementById('micBtn').className = "recording";
                 document.getElementById('micBtn').innerText = "🛑 正在听...";
-                document.getElementById('statusMessage').innerText = "🎤 魔法麦克风吸音就绪，温一默开始背诵吧！";
+                document.getElementById('statusMessage').innerText = "🎤 魔法麦克风正在倾听，请完整朗读，读完后稍作停顿，系统会自动打分！";
                 
                 const node = nodesData[currentIndex];
                 let durationEstimate = node.type === 'normal' ? 5 : 12;
@@ -520,27 +523,46 @@
             
             recognition.onend = () => {
                 isListening = false;
+                clearTimeout(silenceTimer);
                 document.getElementById('micBtn').className = "";
                 document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
-            };
-            
-            recognition.onresult = (event) => {
-                const text = event.results[0][0].transcript;
+                
+                if (finalTranscript.trim() === "") {
+                     document.getElementById('statusMessage').innerText = "🤔 好像没有听到声音哦，请重试一次！";
+                     return;
+                }
+
                 const node = nodesData[currentIndex];
-                let finalScore = calculateKidsComboScore(node, text);
+                let finalScore = calculateKidsComboScore(node, finalTranscript);
 
                 document.getElementById('scoreDisplay').innerText = finalScore + "分";
-                if (finalScore >= 80) {
-                    document.getElementById('statusMessage').innerHTML = `🌟 攻击有力！成功通关！<br><span style='font-size:13px; color:#aaa'>听到的是: "${text}"</span>`;
+                
+                // 修改点 3：强制提升过关红线为 75 分
+                if (finalScore >= 75) {
+                    document.getElementById('statusMessage').innerHTML = `🌟 完整度极佳！成功通关！<br><span style='font-size:13px; color:#aaa'>听到的是: "${finalTranscript}"</span>`;
                     forcePass();
                 } else {
-                    document.getElementById('statusMessage').innerHTML = `👍 已经背得很不错了，多听听家长的录音，再来试一次！`;
+                    document.getElementById('statusMessage').innerHTML = `👍 读对了 ${finalScore}% 的单词，还不够完整哦。大声把全句读完再试一次！<br><span style='font-size:13px; color:#aaa'>听到的是: "${finalTranscript}"</span>`;
                     playErrorSound();
                 }
             };
-        }
+            
+            recognition.onresult = (event) => {
+                let fullText = "";
+                for (let i = 0; i < event.results.length; ++i) {
+                    fullText += event.results[i][0].transcript + " ";
+                }
+                finalTranscript = fullText;
 
-function toggleListening() {
+                // 核心防抖动逻辑：只要有声音持续输入，就重置倒计时。停顿超过1.5秒才触发算分
+                clearTimeout(silenceTimer);
+                silenceTimer = setTimeout(() => {
+                    if (isListening) recognition.stop(); 
+                }, 1500); 
+            };
+        }
+        
+        function toggleListening() {
             initAudioContext();
             if (isListening) recognition.stop(); else recognition.start();
         }
