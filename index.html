@@ -11,7 +11,6 @@
             --accent-color: #f1c40f;
             --btn-active: #d63031;
         }
-        /* 针对平板进行视口和手势防误触优化 */
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
@@ -26,7 +25,6 @@
         }
         h1 { color: #d32f2f; margin-bottom: 5px; font-size: 32px; }
         
-        /* 大颗粒度关卡地图，极度适合平板手指点击 */
         .map-container {
             display: flex;
             justify-content: center;
@@ -37,7 +35,6 @@
             background: rgba(255, 255, 255, 0.85);
             border-radius: 20px;
             border: 2px dashed #ffb8b8;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
         }
         .level-node {
             width: 50px;
@@ -52,8 +49,6 @@
             font-size: 18px;
             border: 3px solid #b2bec3;
             cursor: pointer;
-            transition: all 0.2s;
-            -webkit-tap-highlight-color: transparent;
         }
         .level-node.active {
             background: var(--primary-color);
@@ -68,14 +63,12 @@
             border-color: #27ae60;
         }
         
-        /* 导入与语速控制区域 */
         .config-zone {
             background: #fff;
             border: 2px dashed var(--primary-color);
             padding: 20px;
             border-radius: 16px;
             margin-bottom: 25px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
         .speed-control {
             margin-top: 15px;
@@ -85,14 +78,8 @@
             gap: 15px;
             font-size: 16px;
             font-weight: bold;
-            color: #4a4a4a;
         }
-        /* 加大平板上滑动条的尺寸 */
-        input[type=range] {
-            width: 200px;
-            height: 10px;
-            cursor: pointer;
-        }
+        input[type=range] { width: 200px; height: 10px; }
 
         .card {
             background: white;
@@ -105,26 +92,21 @@
         }
         .english-text { font-size: 26px; font-weight: bold; color: #2c3e50; line-height: 1.6; margin-bottom: 15px; }
         .chinese-text { font-size: 19px; color: #7f8c8d; }
-        .score-box { font-size: 50px; font-weight: bold; margin-top: 15px; }
+        .score-box { font-size: 50px; font-weight: bold; margin-top: 15px; color: var(--primary-color); }
         
-        /* 适合大拇指点击的大号按钮 */
         .controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; margin-top: 25px; }
         button {
             background-color: var(--primary-color);
             color: white; border: none; padding: 16px 35px;
             font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer;
             box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            -webkit-tap-highlight-color: transparent;
         }
-        button:active { background-color: var(--btn-active); transform: scale(0.98); }
-        button:disabled { background-color: #b2bec3; cursor: not-allowed; box-shadow: none; }
+        button:disabled { background-color: #b2bec3; cursor: not-allowed; }
         #micBtn { background-color: #0984e3; }
-        #micBtn:active { background-color: #00cec9; }
         #micBtn.recording { background-color: #e17055; animation: pulse 1s infinite; }
         #passBtn { background-color: var(--success-color); }
-        #passBtn:active { background-color: #27ae60; }
 
-        .star-reward { font-size: 26px; color: var(--accent-color); margin-top: 15px; min-height: 35px; letter-spacing: 3px; }
+        .star-reward { font-size: 26px; color: var(--accent-color); margin-top: 15px; min-height: 35px; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
         #badge { display: none; font-size: 55px; margin-bottom: 15px; }
     </style>
@@ -140,7 +122,6 @@
         </label>
         <div id="audioStatus" style="font-size: 14px; color: #95a5a6; margin-top: 5px;">导入后系统会自动按句切分</div>
         
-        <!-- 实时语速调节滑动条 -->
         <div class="speed-control">
             <span>🐢 减慢</span>
             <input type="range" id="speedRange" min="0.5" max="1.5" step="0.05" value="1.0" oninput="updateSpeedLabel(this.value)">
@@ -149,7 +130,6 @@
         </div>
     </div>
 
-    <!-- 冒险关卡地图 -->
     <div class="map-container" id="levelMap"></div>
     <div class="star-reward" id="starContainer"></div>
 
@@ -166,12 +146,11 @@
         <button id="passBtn" onclick="forcePass()" style="display: none;">⭐ 爸妈判定通过</button>
     </div>
 
-    <div id="statusMessage" style="margin-top: 20px; color: #7f8c8d; font-size: 16px; padding: 0 10px;"></div>
+    <div id="statusMessage" style="margin-top: 20px; color: #7f8c8d; font-size: 16px; padding: 0 10px; font-weight: bold;"></div>
 
     <script>
-        // 核心脚本数据[cite: 1]
         const story = [
-            { en: "Hello everyone, I’m Wen Yimo from Grade two.", zh: "大家好，我是二年级的温一默。[cite: 1]" },
+            { en: "Hello everyone, I’m Wen Yimo from Grade two.", zh: "大家好，我是二年级的温一默。" },
             { en: "Sichuan is a beautiful place with lots of Three Kingdoms culture!", zh: "四川是一个美丽的地方，有许多三国文化！[cite: 1]" },
             { en: "Today, I want to tell you a famous story about three brave heroes.", zh: "今天，我想给你们讲一个关于三位勇敢英雄的著名故事。[cite: 1]" },
             { en: "Long, long ago, there were three men.", zh: "很久很久以前，有三个人。[cite: 1]" },
@@ -193,13 +172,12 @@
         let clearedLevels = new Set();
         let audioBuffer = null;
         let audioContext = null;
-        let currentSourceNode = null; // 用于追踪当前正在播放的声源
+        let currentSourceNode = null; 
         let timestamps = [];
         let recognition;
         let isListening = false;
         let currentPlaybackRate = 1.0;
 
-        // 初始化地图
         const map = document.getElementById('levelMap');
         story.forEach((_, idx) => {
             const node = document.createElement('div');
@@ -215,7 +193,6 @@
             document.getElementById('speedLabel').innerText = val + "x";
         }
 
-        // 初始化 AudioContext（兼容平板点击策略）
         function initAudioContext() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -289,12 +266,10 @@
             loadLevel(0);
         }
 
-        // 核心优化：完美支持语速调节的音频片段播放
         function playParentAudio() {
             initAudioContext();
             if (!audioBuffer || timestamps.length === 0) return;
             
-            // 如果当前已经在播放，先强行停止
             if (currentSourceNode) {
                 try { currentSourceNode.stop(); } catch(e) {}
             }
@@ -305,13 +280,8 @@
 
             let source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
-            
-            // 实时注入语速滑块的值
             source.playbackRate.value = currentPlaybackRate;
-            
             source.connect(audioContext.destination);
-            
-            // 考虑语速折算实际播放的时长
             source.start(0, start, duration);
             currentSourceNode = source;
             
@@ -364,22 +334,27 @@
             }
         }
 
-        // 平板移动端语音识别兼容性处理
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        // 初始化语音识别并添加移动端防卡死提示
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
             
             recognition.onstart = () => {
                 isListening = true;
                 document.getElementById('micBtn').className = "recording";
                 document.getElementById('micBtn').innerText = "🛑 正在听...";
+                document.getElementById('statusMessage').innerText = "🎤 平板正在听，请大声朗读吧！读完停顿即可。";
             };
+            
             recognition.onend = () => {
                 isListening = false;
                 document.getElementById('micBtn').className = "";
                 document.getElementById('micBtn').innerText = "🎤 我来挑战";
             };
+            
             recognition.onresult = (event) => {
                 const text = event.results[0][0].transcript;
                 let match = 0;
@@ -389,22 +364,38 @@
                 let score = Math.round((match / arr1.length) * 100);
 
                 document.getElementById('scoreDisplay').innerText = score + "分";
-                if (score >= 6) { // 考虑到平板麦克风距离，只要匹配到部分核心词即可通过
-                    document.getElementById('statusMessage').innerHTML = `👍 挑战成功！你读的是: "${text}"`;
-                    forcePass();
+                if (score >= 40) { // 调低移动端打分阈值，40分以上即判定过关
+                    document.getElementById('statusMessage').innerHTML = `<span style="color:var(--success-color)">👍 挑战成功！你读的是: "${text}"</span>`;
+                    setTimeout(forcePass, 1200);
                 } else {
-                    document.getElementById('statusMessage').innerHTML = `😮 差一点点！你读的是: "${text}"，再跟爸爸妈妈的声音学一次吧！`;
+                    document.getElementById('statusMessage').innerHTML = `<span style="color:var(--primary-color)">😮 差一点点（得${score}分）！你读的是: "${text}"，再试一次！</span>`;
                     playErrorSound();
                 }
             };
+
+            recognition.onerror = (event) => {
+                console.error(event.error);
+                if (event.error === 'not-allowed') {
+                    document.getElementById('statusMessage').innerHTML = "<span style='color:red'>❌ 平板拒绝了麦克风权限！请去系统设置里允许Safari/Chrome使用麦克风。</span>";
+                } else if (event.error === 'no-speech') {
+                    document.getElementById('statusMessage').innerHTML = "<span style='color:orange'>⏰ 没有听到声音，请离麦克风近一点重新大声读。</span>";
+                } else {
+                    document.getElementById('statusMessage').innerHTML = "❌ 识别遇到小脾气 (" + event.error + ")，请重试或让爸妈点击放行。";
+                }
+            };
+        } else {
+            document.getElementById('statusMessage').innerHTML = "<span style='color:red'>❌ 当前浏览器内置的核心语音识别组件未响应，建议使用最新的本地 Chrome 浏览器或自带的 Safari 浏览器。</span>";
         }
 
         function toggleListening() {
             initAudioContext();
+            if (!SpeechRecognition) {
+                alert("当前环境不支持录音打分，请直接让爸妈当裁判点击右下角‘爸妈判定通过’！");
+                return;
+            }
             if (isListening) recognition.stop(); else recognition.start();
         }
 
-        // 浏览器端游戏音效
         function playCorrectSound() {
             if(!audioContext) return;
             let osc = audioContext.createOscillator();
