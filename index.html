@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/peach.png">
 <link rel="icon" href="https://img.icons8.com/color/512/peach.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    
-<title>温一默的纯英演说大冒险 🌸</title>
+<title>文一墨的纯英演说大冒险 🌸</title>
     <style>
         :root {
             --primary-color: #ff7675;
@@ -90,12 +90,13 @@
         #micBtn { background-color: #0984e3; }
         #micBtn.recording { background-color: #e17055; animation: pulse 1s infinite; }
         #passBtn { background-color: var(--success-color); }
+        #playMyAudioBtn { background-color: #9b59b6; }
         .clear-cache-btn { background-color: #7f8c8d; padding: 6px 14px; font-size: 12px; border-radius: 10px; margin-left: 10px; cursor: pointer; color: white; border: none;}
     </style>
 </head>
 <body>
 
-    <h1>🌸 温一默的纯英演说大冒险 🌸</h1>
+    <h1>🌸 文一墨的纯英演说大冒险 🌸</h1>
     
     <div class="import-zone">
         <label style="font-weight: bold; color: #c0392b;">✍️ 第一步：把纯英文演讲稿贴到这里（严格一句一行，系统将完全按这里的换行划分关卡）</label>
@@ -130,6 +131,7 @@
 
     <div class="controls">
         <button id="ttsBtn" onclick="playParentAudio()" disabled>🔊 听家长读</button>
+        <button id="playMyAudioBtn" onclick="playKidsAudio()" style="display: none;">🎧 听我的录音</button>
         <button id="micBtn" onclick="toggleListening()" disabled>🎤 我来挑战打怪</button>
         <button id="passBtn" onclick="forcePass()" style="display: none;">⭐ 爸妈判定通过</button>
     </div>
@@ -148,6 +150,12 @@
         let currentPlaybackRate = 1.0;
         let highlightTimer = null;
         let activeSourcesList = [];
+
+        // 小朋友录音相关变量
+        let kidsMediaRecorder = null;
+        let kidsAudioChunks = [];
+        let kidsAudioBlobUrl = null;
+        let kidsAudioPlayer = new Audio();
 
         function initAudioContext() {
             if (audioContext.state === 'suspended') audioContext.resume();
@@ -168,7 +176,7 @@
         }
 
         function clearGameCache() {
-            if(confirm("确定要清空温一默的剧本存档吗？")) {
+            if(confirm("确定要清空文一墨的剧本存档吗？")) {
                 localStorage.removeItem('yimo_speech_text_v5');
                 location.reload();
             }
@@ -290,7 +298,7 @@
                 mapContainer.appendChild(div);
             });
 
-            document.getElementById('audioStatus').innerText = `✅ 全自动对齐成功！已揪出呼吸断点，生成 ${totalSentencesCount} 个小关卡！`;
+            document.getElementById('audioStatus').innerText = `✅ 全自动对齐成功！已生成 ${totalSentencesCount} 个小关卡！`;
             document.getElementById('ttsBtn').disabled = false;
             document.getElementById('micBtn').disabled = false;
             document.getElementById('passBtn').style.display = 'inline-block';
@@ -344,6 +352,9 @@
             initAudioContext();
             activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
             activeSourcesList = [];
+            // 如果孩子自己的录音正在播放，先暂停它
+            if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
+            
             clearInterval(highlightTimer);
 
             const node = nodesData[currentIndex];
@@ -402,6 +413,17 @@
             });
         }
 
+        // 播放小朋友刚录的声音
+        function playKidsAudio() {
+            // 先停止家长的音频
+            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
+            if (kidsAudioBlobUrl) {
+                kidsAudioPlayer.src = kidsAudioBlobUrl;
+                kidsAudioPlayer.play();
+                document.getElementById('statusMessage').innerText = "🎧 正在回放刚才的录音...";
+            }
+        }
+
         function loadLevel(idx) {
             if (nodesData.length === 0) return;
             if (idx > 0 && !clearedLevels.has(idx - 1) && idx !== currentIndex) {
@@ -409,6 +431,12 @@
                 return;
             }
             activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
+            if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
+            
+            // 切换关卡时，重置并隐藏录音回放按钮
+            document.getElementById('playMyAudioBtn').style.display = 'none';
+            kidsAudioBlobUrl = null;
+            
             clearInterval(highlightTimer);
             
             currentIndex = idx;
@@ -434,7 +462,6 @@
             updateStars();
         }
 
-        // 修改点 1：重写完整度占比打分机制，杜绝重复刷分，提高精确度
         function calculateKidsComboScore(node, recognized) {
             let targetText = "";
             if (node.type === 'normal') targetText = node.en;
@@ -454,7 +481,11 @@
             });
             
             let baseRate = match / arr1.length;
-            return Math.min(100, Math.floor(baseRate * 100));
+            
+            if (baseRate >= 0.6) return 95 + Math.floor(Math.random() * 5); 
+            if (baseRate >= 0.3) return 85 + Math.floor(Math.random() * 10); 
+            if (baseRate >= 0.15) return 75 + Math.floor(Math.random() * 10); 
+            return 50 + Math.floor(baseRate * 100); 
         }
 
         function updateStars() {
@@ -467,7 +498,7 @@
 
             if (clearedLevels.size === nodesData.length && nodesData.length > 0) {
                 document.getElementById('badge').style.display = 'block';
-                document.getElementById('engText').innerText = "🎉 恭喜温一默通关全部大挑战！成为演说小冠军！";
+                document.getElementById('engText').innerText = "🎉 恭喜文一墨通关全部大挑战！成为演说小冠军！";
             }
         }
 
@@ -492,8 +523,6 @@
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
-            
-            // 修改点 2：开启连续倾听流式拦截机制
             recognition.continuous = true; 
             recognition.interimResults = true; 
             
@@ -504,8 +533,10 @@
                 isListening = true;
                 finalTranscript = "";
                 document.getElementById('micBtn').className = "recording";
-                document.getElementById('micBtn').innerText = "🛑 正在听...";
-                document.getElementById('statusMessage').innerText = "🎤 魔法麦克风正在倾听，请完整朗读，读完后稍作停顿，系统会自动打分！";
+                document.getElementById('micBtn').innerText = "🛑 我在听，慢慢读...";
+                document.getElementById('statusMessage').innerText = "🎤 平板正在耐心倾听，慢慢读，遇到不会的可以停顿思考哦...";
+                // 开始识别时隐藏播放按钮
+                document.getElementById('playMyAudioBtn').style.display = 'none';
                 
                 const node = nodesData[currentIndex];
                 let durationEstimate = node.type === 'normal' ? 5 : 12;
@@ -527,8 +558,13 @@
                 document.getElementById('micBtn').className = "";
                 document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
                 
+                // 停止真实录音
+                if (kidsMediaRecorder && kidsMediaRecorder.state === "recording") {
+                    kidsMediaRecorder.stop();
+                }
+                
                 if (finalTranscript.trim() === "") {
-                     document.getElementById('statusMessage').innerText = "🤔 好像没有听到声音哦，请重试一次！";
+                     document.getElementById('statusMessage').innerText = "🤔 好像没有听到声音哦，大点声再试一次！";
                      return;
                 }
 
@@ -537,12 +573,12 @@
 
                 document.getElementById('scoreDisplay').innerText = finalScore + "分";
                 
-                // 修改点 3：强制提升过关红线为 75 分
                 if (finalScore >= 75) {
-                    document.getElementById('statusMessage').innerHTML = `🌟 完整度极佳！成功通关！<br><span style='font-size:13px; color:#aaa'>听到的是: "${finalTranscript}"</span>`;
+                    let feedback = finalScore >= 90 ? "🌟 发音太标准啦！通顺又流利，完美过关！" : "🌟 坚持读完了整句，太棒了！成功击破！";
+                    document.getElementById('statusMessage').innerHTML = `${feedback}<br><span style='font-size:13px; color:#aaa'>识别到的声音: "${finalTranscript}"</span>`;
                     forcePass();
                 } else {
-                    document.getElementById('statusMessage').innerHTML = `👍 读对了 ${finalScore}% 的单词，还不够完整哦。大声把全句读完再试一次！<br><span style='font-size:13px; color:#aaa'>听到的是: "${finalTranscript}"</span>`;
+                    document.getElementById('statusMessage').innerHTML = `👍 声音真响亮！不过好像漏读了一些哦，听听原声，再对比自己的声音试试吧！<br><span style='font-size:13px; color:#aaa'>识别到的声音: "${finalTranscript}"</span>`;
                     playErrorSound();
                 }
             };
@@ -554,17 +590,46 @@
                 }
                 finalTranscript = fullText;
 
-                // 核心防抖动逻辑：只要有声音持续输入，就重置倒计时。停顿超过1.5秒才触发算分
                 clearTimeout(silenceTimer);
                 silenceTimer = setTimeout(() => {
                     if (isListening) recognition.stop(); 
-                }, 1500); 
+                }, 3500); 
             };
         }
-        
-        function toggleListening() {
+
+        async function toggleListening() {
             initAudioContext();
-            if (isListening) recognition.stop(); else recognition.start();
+            if (isListening) {
+                recognition.stop(); 
+                if (kidsMediaRecorder && kidsMediaRecorder.state === "recording") {
+                    kidsMediaRecorder.stop();
+                }
+            } else {
+                // 如果还没有初始化真实麦克风录制系统，就初始化它
+                if (!kidsMediaRecorder) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        kidsMediaRecorder = new MediaRecorder(stream);
+                        kidsMediaRecorder.ondataavailable = (e) => {
+                            kidsAudioChunks.push(e.data);
+                        };
+                        kidsMediaRecorder.onstop = () => {
+                            const blob = new Blob(kidsAudioChunks, { type: 'audio/webm' });
+                            kidsAudioBlobUrl = URL.createObjectURL(blob);
+                            // 录制结束，显示【听我的录音】按钮
+                            document.getElementById('playMyAudioBtn').style.display = 'inline-block';
+                        };
+                    } catch (err) {
+                        console.warn("麦克风真实录音权限被拒绝或不支持，仅使用语音识别", err);
+                    }
+                }
+                
+                kidsAudioChunks = [];
+                if (kidsMediaRecorder && kidsMediaRecorder.state === "inactive") {
+                    kidsMediaRecorder.start();
+                }
+                recognition.start();
+            }
         }
 
         function playCorrectSound() {
