@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="https://img.icons8.com/color/512/peach.png">
-<link rel="icon" href="https://img.icons8.com/color/512/peach.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    
-<title>文一墨的纯英演说大冒险 🌸</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/peach.png">
+    <link rel="icon" href="https://img.icons8.com/color/512/peach.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    
+    <title>文一墨的纯英演说大冒险 🌸</title>
     <style>
         :root {
             --primary-color: #ff7675;
@@ -17,6 +17,7 @@
             --accent-color: #f1c40f;
             --boss-color: #9b59b6;
             --hp-color: #e74c3c;
+            --parent-color: #00cec9;
         }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -39,6 +40,13 @@
             width: 100%; height: 110px; margin-top: 5px; margin-bottom: 10px;
             border: 1px solid #ddd; border-radius: 8px; padding: 8px; box-sizing: border-box;
             font-size: 14px; line-height: 1.4;
+        }
+        .nas-input {
+            width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ddd; box-sizing: border-box;
+        }
+        .voice-selector, .course-selector {
+            width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;
+            font-size: 16px; background: #fafafa;
         }
         
         .map-container {
@@ -91,7 +99,13 @@
         #micBtn.recording { background-color: #e17055; animation: pulse 1s infinite; }
         #passBtn { background-color: var(--success-color); }
         #playMyAudioBtn { background-color: #9b59b6; }
-        .clear-cache-btn { background-color: #7f8c8d; padding: 6px 14px; font-size: 12px; border-radius: 10px; margin-left: 10px; cursor: pointer; color: white; border: none;}
+        #playHistoryAudioBtn { background-color: #16a085; }
+        #playParentAudioBtn { background-color: var(--parent-color); } 
+        .generate-btn { background-color: #d32f2f; width: 100%; margin-top: 10px; padding: 15px; border-radius: 12px; }
+        .course-btn-group { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .course-btn { padding: 8px 12px; font-size: 14px; border-radius: 8px; flex: 1; min-width: 140px; }
+        .course-delete-btn { background-color: #e74c3c; padding: 8px 12px; font-size: 14px; border-radius: 8px; min-width: 100px; }
+        .course-reset-btn { background-color: #f39c12; padding: 8px 12px; font-size: 14px; border-radius: 8px; min-width: 120px; color: white; border: none; font-weight: bold; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -99,19 +113,42 @@
     <h1>🌸 文一墨的纯英演说大冒险 🌸</h1>
     
     <div class="import-zone">
-        <label style="font-weight: bold; color: #c0392b;">✍️ 第一步：把纯英文演讲稿贴到这里（严格一句一行，系统将完全按这里的换行划分关卡）</label>
-        <textarea id="textInput" oninput="saveTextToCache()" placeholder="可以将演讲稿贴在这里，一行一句英文..."></textarea>
+        <label style="font-weight: bold; color: #c0392b;">🔗 局域网 NAS 中转站 API 地址：</label>
+        <input type="text" id="nasIpInput" class="nas-input" placeholder="内网填: http://192.168.50.142:5034  反代填: https://你的域名" oninput="localStorage.setItem('yimo_nas_ip', this.value)">
 
-        <label style="font-weight: bold; color: var(--primary-color); display: block; margin-top: 10px; margin-bottom: 5px;">🎵 第二步：导入整段长录音 (MP3/WAV)</label>
-        <input type="file" id="audioFile" accept="audio/*" onchange="handleAudioUpload(this)">
-        <span id="audioStatus" style="font-size: 14px; color: #95a5a6; font-weight: bold; margin-left: 10px;">请先贴入文字，再上传音频。</span>
+        <label style="font-weight: bold; color: #3498db; display: block; margin-top: 10px;">📚 选课中心（文一墨的专属剧本库）：</label>
+        <select id="courseSelect" class="course-selector" onchange="switchCourse()">
+            <option value="">-- 🔍 戳这里选择已存课程 --</option>
+        </select>
         
-        <div style="margin-top: 10px; font-weight: bold; font-size: 14px; text-align: center;">
+        <div class="course-btn-group">
+            <button class="course-btn" style="background-color: #3498db;" onclick="saveCurrentAsNewCourse()">💾 将当前文本存入新课程</button>
+            <button class="course-reset-btn" onclick="resetCurrentCourseProgress()">🔄 重新挑战本课</button>
+            <button class="course-delete-btn" onclick="deleteCurrentCourse()">🗑️ 删除课程</button>
+        </div>
+
+        <label style="font-weight: bold; color: #c0392b; display: block; margin-top: 15px;">✍️ 第一步：把英文演讲稿贴到这里（严格一句一行，系统将完美按这里的换行划分关卡）</label>
+        <textarea id="textInput" oninput="saveTextToCache()" placeholder="请在这里贴入演说内容，换行区分关卡..."></textarea>
+
+        <label style="font-weight: bold; color: var(--primary-color); display: block; margin-top: 10px; margin-bottom: 5px;">🎵 第二步：导入家长录制的完整示范大音频 (选填，自动高精切段)</label>
+        <input type="file" id="audioFile" accept="audio/*" onchange="handleAudioUpload(this)">
+        <span id="audioStatus" style="font-size: 14px; color: #95a5a6; font-weight: bold; margin-left: 10px;">选填。如不提供长录音，将采用全自适应时间轴。</span>
+
+        <label style="font-weight: bold; color: var(--primary-color); display: block; margin-top: 15px;">🪄 第三步：选择微软高拟真 AI 音色</label>
+        <select id="voiceSelect" class="voice-selector">
+            <option value="en-US-AnaNeural">👶 活泼童声 - Ana (强推！最适合小朋友)</option>
+            <option value="en-US-AriaNeural">👩 亲切女声 - Aria (标准美音)</option>
+            <option value="en-US-ChristopherNeural">👨 浑厚男声 - Christopher (充满力量感)</option>
+            <option value="en-GB-SoniaNeural">👸 优雅英音 - Sonia (标准伦敦腔)</option>
+        </select>
+        
+        <div style="margin-top: 5px; font-weight: bold; font-size: 14px; text-align: center;">
             🐢 语速调节：
             <input type="range" id="speedRange" min="0.5" max="1.3" step="0.05" value="1.0" oninput="currentPlaybackRate = parseFloat(this.value); document.getElementById('speedLabel').innerText=this.value+'x'">
             <span id="speedLabel">1.0x</span>
-            <button onclick="clearGameCache()" class="clear-cache-btn">🗑️ 清空文本存档</button>
         </div>
+
+        <button class="generate-btn" onclick="generateGameMap()">🚀 一键生成文一墨的专属关卡</button>
     </div>
 
     <!-- BOSS 战场 -->
@@ -125,13 +162,16 @@
 
     <div class="card">
         <div id="badge" style="display:none; font-size:50px;">👑 演说大冠军勋章 👑</div>
-        <div class="word-container" id="engText">请在上方配置你的剧本并上传音频。</div>
+        <div class="word-container" id="engText">请在上方贴入剧本并点击生成。</div>
         <div class="score-box" id="scoreDisplay"></div>
     </div>
 
     <div class="controls">
-        <button id="ttsBtn" onclick="playParentAudio()" disabled>🔊 听家长读</button>
-        <button id="playMyAudioBtn" onclick="playKidsAudio()" style="display: none;">🎧 听我的录音</button>
+        <button id="ttsBtn" onclick="playMicrosoftAudio()" disabled>🔊 听 AI 外教读</button>
+        <!-- 轨道选择：听家长或者听 AI，完美实现同一个关卡双轨并存 -->
+        <button id="playParentAudioBtn" onclick="playParentAudio()" style="display: none;">🔊 听家长读</button>
+        <button id="playMyAudioBtn" onclick="playKidsAudio()" style="display: none;">🎧 听临时录音</button>
+        <button id="playHistoryAudioBtn" onclick="playHistoryPassAudio()" style="display: none;">🎧 听我通关的录音</button>
         <button id="micBtn" onclick="toggleListening()" disabled>🎤 我来挑战打怪</button>
         <button id="passBtn" onclick="forcePass()" style="display: none;">⭐ 爸妈判定通过</button>
     </div>
@@ -139,67 +179,224 @@
     <div id="statusMessage" style="margin-top: 15px; color: #7f8c8d; font-size: 15px; font-weight: bold;"></div>
 
     <script>
-        let story = []; 
-        let nodesData = []; 
-        let currentIndex = 0; 
-        let clearedLevels = new Set();
-        let audioBuffer = null;
+        // 初始化多媒体音频引擎环境
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let sentenceTimestamps = []; 
-        let isListening = false;
-        let currentPlaybackRate = 1.0;
-        let highlightTimer = null;
+        
+        let story = []; let nodesData = []; let currentIndex = 0; let clearedLevels = new Set();
+        let isListening = false; let currentPlaybackRate = 1.0; let highlightTimer = null; let currentAiAudio = null;
+
+        // 家长长录音智能分切核心控制流
+        let audioBuffer = null;
+        let sentenceTimestamps = [];
         let activeSourcesList = [];
 
-        // 小朋友录音相关变量
-        let kidsMediaRecorder = null;
-        let kidsAudioChunks = [];
-        let kidsAudioBlobUrl = null;
+        // 孩子录音追踪轨
+        let kidsMediaRecorder = null; let kidsAudioChunks = [];
+        let kidsAudioBlobUrl = null;      
+        let currentPassAudioBlob = null;   
+        let historyPassAudioUrl = null;    
         let kidsAudioPlayer = new Audio();
+
+        let courseDatabase = {};
+        let dbInstance = null; 
 
         function initAudioContext() {
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            const cachedText = localStorage.getItem('yimo_speech_text_v5');
-            if (cachedText) {
-                document.getElementById('textInput').value = cachedText;
-                story = cachedText.split("\n").map(l => l.trim()).filter(l => l !== "");
-                document.getElementById('audioStatus').innerText = "📂 已自动加载剧本存档，请重新选择音频文件激活关卡！";
-            }
+            const cachedNasIp = localStorage.getItem('yimo_nas_ip');
+            if (cachedNasIp) document.getElementById('nasIpInput').value = cachedNasIp;
+            else document.getElementById('nasIpInput').value = "http://192.168.50.142:5034"; 
+            
+            initIndexedDB().then(() => {
+                loadCourseDatabase();
+            });
         });
 
-        function saveTextToCache() {
-            const text = document.getElementById('textInput').value;
-            localStorage.setItem('yimo_speech_text_v5', text);
+        // =================【📀 IndexedDB 声音大仓库底层留声机驱动】=================
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("YimoVoiceStorageV3", 3);
+                request.onupgradeneeded = (e) => {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains("passed_voices")) {
+                        db.createObjectStore("passed_voices", { keyPath: "id" });
+                    }
+                    // 专门存储长示范音频的 ArrayBuffer
+                    if (!db.objectStoreNames.contains("parent_long_buffers")) {
+                        db.createObjectStore("parent_long_buffers", { keyPath: "id" });
+                    }
+                };
+                request.onsuccess = (e) => { dbInstance = e.target.result; resolve(); };
+                request.onerror = () => { reject(); };
+            });
         }
 
-        function clearGameCache() {
-            if(confirm("确定要清空文一墨的剧本存档吗？")) {
-                localStorage.removeItem('yimo_speech_text_v5');
-                location.reload();
+        function saveAudioToDB(storeName, key, data) {
+            if (!dbInstance || !data) return;
+            const transaction = dbInstance.transaction([storeName], "readwrite");
+            transaction.objectStore(storeName).put({ id: key, rawData: data, timestamp: Date.now() });
+        }
+
+        function getAudioFromDB(storeName, key) {
+            return new Promise((resolve) => {
+                if (!dbInstance) return resolve(null);
+                const transaction = dbInstance.transaction([storeName], "readonly");
+                const request = transaction.objectStore(storeName).get(key);
+                request.onsuccess = (e) => {
+                    if (e.target.result) resolve(e.target.result.rawData);
+                    else resolve(null);
+                };
+                request.onerror = () => resolve(null);
+            });
+        }
+
+        function deleteCourseDataFromDB(courseName) {
+            if (!dbInstance) return;
+            ["passed_voices", "parent_long_buffers"].forEach(storeName => {
+                const transaction = dbInstance.transaction([storeName], "readwrite");
+                const store = transaction.objectStore(storeName);
+                store.openCursor().onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        if (cursor.key.startsWith(`${courseName}_`) || cursor.key === courseName) store.delete(cursor.key);
+                        cursor.continue();
+                    }
+                };
+            });
+        }
+
+        // =================【🎯 选课中心管理逻辑】=================
+        function loadCourseDatabase() {
+            const cachedDb = localStorage.getItem('yimo_course_db_v1');
+            if (cachedDb) courseDatabase = JSON.parse(cachedDb);
+            else {
+                courseDatabase = { "示例课程：桃园三结义": "Three brave men met in a peach garden.\nThey promised to be brothers.\nThey vowed to protect their country together." };
+                localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase));
+            }
+            renderCourseDropdown();
+
+            const lastDraft = localStorage.getItem('yimo_current_draft');
+            if (lastDraft) document.getElementById('textInput').value = lastDraft;
+            else document.getElementById('textInput').value = courseDatabase[Object.keys(courseDatabase)[0]] || "";
+            
+            const lastSelectedCourse = localStorage.getItem('yimo_selected_course_name');
+            if (lastSelectedCourse && courseDatabase[lastSelectedCourse]) {
+                document.getElementById('courseSelect').value = lastSelectedCourse;
+                restoreCourseProgress(lastSelectedCourse);
             }
         }
 
+        function renderCourseDropdown() {
+            const select = document.getElementById('courseSelect');
+            select.innerHTML = '<option value="">-- 🔍 戳这里选择已存课程 --</option>';
+            Object.keys(courseDatabase).forEach(courseName => {
+                const opt = document.createElement('option'); opt.value = courseName; opt.innerText = courseName; select.appendChild(opt);
+            });
+        }
+
+        function saveCurrentAsNewCourse() {
+            const currentText = document.getElementById('textInput').value.trim();
+            if (!currentText) { alert("文本框里没有内容哦！"); return; }
+            const courseName = prompt("请输入新课程的名字："); if (!courseName) return;
+            if (courseDatabase[courseName] && !confirm("课程已存在，确定覆盖吗？")) return;
+
+            courseDatabase[courseName] = currentText;
+            localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase));
+            localStorage.setItem('yimo_selected_course_name', courseName);
+            renderCourseDropdown();
+            document.getElementById('courseSelect').value = courseName;
+            clearedLevels = new Set();
+            saveCourseProgressToStorage(courseName);
+            document.getElementById('statusMessage').innerText = `💾 成功建立新剧本："${courseName}"`;
+        }
+
+        async function switchCourse() {
+            const select = document.getElementById('courseSelect');
+            const selectedName = select.value; if (!selectedName) return;
+            document.getElementById('textInput').value = courseDatabase[selectedName];
+            localStorage.setItem('yimo_current_draft', courseDatabase[selectedName]);
+            localStorage.setItem('yimo_selected_course_name', selectedName);
+            restoreCourseProgress(selectedName);
+            
+            // 尝试从本地加载家长录音缓存
+            audioBuffer = null;
+            document.getElementById('audioFile').value = "";
+            const savedArrayBuffer = await getAudioFromDB("parent_long_buffers", selectedName);
+            if (savedArrayBuffer) {
+                document.getElementById('audioStatus').innerText = "📂 正在解码本地固化的家长示范声音档案...";
+                audioContext.decodeAudioData(savedArrayBuffer.slice(0), (buffer) => {
+                    audioBuffer = buffer;
+                    sliceAudioIntelligently(buffer, courseDatabase[selectedName].split("\n").filter(Boolean).length);
+                });
+            } else {
+                document.getElementById('audioStatus').innerText = "⚪ 本课暂无外部长录音，采用自适应跑马灯。";
+                generateGameMap();
+            }
+        }
+
+        function restoreCourseProgress(courseName) {
+            const cachedProgress = localStorage.getItem(`yimo_progress_${courseName}`);
+            clearedLevels = cachedProgress ? new Set(JSON.parse(cachedProgress)) : new Set();
+        }
+
+        function saveCourseProgressToStorage(courseName) {
+            if (!courseName) return;
+            localStorage.setItem(`yimo_progress_${courseName}`, JSON.stringify(Array.from(clearedLevels)));
+        }
+
+        function resetCurrentCourseProgress() {
+            const select = document.getElementById('courseSelect'); const currentCourseName = select.value;
+            if (!currentCourseName) { alert("请先在选课中心选中一门课程。"); return; }
+            if (confirm(`🚨 确认清空闯关进度及录音，重头开始挑战吗？`)) {
+                clearedLevels = new Set();
+                saveCourseProgressToStorage(currentCourseName);
+                deleteCourseDataFromDB(currentCourseName);
+                audioBuffer = null;
+                document.getElementById('badge').style.display = 'none';
+                generateGameMap();
+                document.getElementById('statusMessage').innerText = `🔄 关卡及留声机已重置清空！`;
+            }
+        }
+
+        function deleteCurrentCourse() {
+            const select = document.getElementById('courseSelect'); const selectedName = select.value; if (!selectedName) return;
+            if (confirm(`确定要永久删除课程 "${selectedName}" 吗？`)) {
+                delete courseDatabase[selectedName];
+                localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase));
+                deleteCourseDataFromDB(selectedName);
+                localStorage.removeItem(`yimo_progress_${selectedName}`);
+                localStorage.removeItem('yimo_selected_course_name'); localStorage.removeItem('yimo_current_draft');
+                document.getElementById('textInput').value = ""; clearedLevels = new Set(); audioBuffer = null;
+                renderCourseDropdown(); document.getElementById('levelMap').innerHTML = ""; document.getElementById('starContainer').innerText = "";
+            }
+        }
+
+        function saveTextToCache() {
+            localStorage.setItem('yimo_current_draft', document.getElementById('textInput').value);
+            document.getElementById('courseSelect').value = ""; localStorage.removeItem('yimo_selected_course_name');
+        }
+
+        // =================【🎵 亮点移植：家长长录音智能分切算法】=================
         function handleAudioUpload(input) {
             initAudioContext();
             const customText = document.getElementById('textInput').value.trim();
-            if(!customText) {
-                alert("请先输入演讲稿英文（一句一行），再导入音频。");
-                input.value = "";
-                return;
-            }
-
-            story = customText.split("\n").map(l => l.trim()).filter(l => l !== "");
-
-            const file = input.files[0];
-            if (!file) return;
-            document.getElementById('audioStatus').innerText = "⚡ 正在智能捕获音频中的呼吸停顿点并切分...";
+            if(!customText) { alert("请先输入演讲稿（一句一行），再导入音频。"); input.value = ""; return; }
             
+            story = customText.split("\n").map(l => l.trim()).filter(l => l !== "");
+            const file = input.files[0]; if (!file) return;
+            
+            document.getElementById('audioStatus').innerText = "⚡ 正在智能捕获音频中的呼吸停顿点并切分...";
+            const select = document.getElementById('courseSelect').value;
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                audioContext.decodeAudioData(e.target.result, function(buffer) {
+                const rawArrayBuffer = e.target.result;
+                // 如果选了课，顺手将原始音频持久化进大仓库
+                if(select) saveAudioToDB("parent_long_buffers", select, rawArrayBuffer.slice(0));
+
+                audioContext.decodeAudioData(rawArrayBuffer, function(buffer) {
                     audioBuffer = buffer;
                     sliceAudioIntelligently(buffer, story.length);
                 });
@@ -213,35 +410,20 @@
             const stepSize = Math.floor(sampleRate * 0.05); 
             const segments = Math.floor(rawData.length / stepSize);
 
-            let energies = [];
-            let totalEnergy = 0;
+            let energies = []; let totalEnergy = 0;
             for (let i = 0; i < segments; i++) {
-                let sum = 0;
-                for (let j = 0; j < stepSize; j++) {
-                    sum += Math.abs(rawData[i * stepSize + j]);
-                }
-                let avg = sum / stepSize;
-                energies.push(avg);
-                totalEnergy += avg;
+                let sum = 0; for (let j = 0; j < stepSize; j++) { sum += Math.abs(rawData[i * stepSize + j]); }
+                let avg = sum / stepSize; energies.push(avg); totalEnergy += avg;
             }
 
-            let avgEnergy = totalEnergy / energies.length;
-            let threshold = avgEnergy * 0.25; 
-
-            let silenceGaps = [];
-            let currentGap = null;
+            let threshold = (totalEnergy / energies.length) * 0.25; 
+            let silenceGaps = []; let currentGap = null;
 
             for (let i = 0; i < energies.length; i++) {
                 if (energies[i] < threshold) {
-                    if (!currentGap) currentGap = { start: i * 0.05, length: 0 };
-                    currentGap.length += 0.05;
+                    if (!currentGap) currentGap = { start: i * 0.05, length: 0 }; currentGap.length += 0.05;
                 } else {
-                    if (currentGap) {
-                        if (currentGap.length > 0.2) {
-                            silenceGaps.push(currentGap);
-                        }
-                        currentGap = null;
-                    }
+                    if (currentGap) { if (currentGap.length > 0.2) silenceGaps.push(currentGap); currentGap = null; }
                 }
             }
             if (currentGap && currentGap.length > 0.2) silenceGaps.push(currentGap);
@@ -251,417 +433,280 @@
 
             if (silenceGaps.length >= numCuts && numCuts > 0) {
                 silenceGaps.sort((a, b) => b.length - a.length);
-                let selectedGaps = silenceGaps.slice(0, numCuts);
-                selectedGaps.sort((a, b) => a.start - b.start);
-
-                selectedGaps.forEach(gap => {
-                    sentenceTimestamps.push(parseFloat((gap.start + gap.length / 2).toFixed(3)));
-                });
+                let selectedGaps = silenceGaps.slice(0, numCuts); selectedGaps.sort((a, b) => a.start - b.start);
+                selectedGaps.forEach(gap => { sentenceTimestamps.push(parseFloat((gap.start + gap.length / 2).toFixed(3))); });
             } else {
-                let wordCounts = story.map(sentence => sentence.split(" ").filter(Boolean).length);
+                let wordCounts = story.map(s => s.split(" ").filter(Boolean).length);
                 let totalWords = wordCounts.reduce((a, b) => a + b, 0) || 1;
                 let currentAccumulatedTime = 0;
                 for (let i = 0; i < numCuts; i++) {
-                    let sentenceRatio = wordCounts[i] / totalWords;
-                    let sentenceDuration = buffer.duration * sentenceRatio;
-                    currentAccumulatedTime += sentenceDuration;
+                    currentAccumulatedTime += (buffer.duration * (wordCounts[i] / totalWords));
                     sentenceTimestamps.push(parseFloat(currentAccumulatedTime.toFixed(3)));
                 }
             }
             sentenceTimestamps.push(buffer.duration);
-
-            build31GameMap(story.length);
+            generateGameMap();
         }
 
-        function build31GameMap(totalSentencesCount) {
-            nodesData = [];
-            let comboTracker = [];
-
+        // =================【🎮 游戏核心玩法模块】=================
+        function generateGameMap() {
+            const customText = document.getElementById('textInput').value.trim();
+            if(!customText) return;
+            story = customText.split("\n").map(l => l.trim()).filter(l => l !== "");
+            nodesData = []; let comboTracker = [];
             story.forEach((sentence, idx) => {
                 nodesData.push({ type: 'normal', scriptIdx: idx, label: idx + 1, en: sentence });
                 comboTracker.push({ scriptIdx: idx, mapIdx: nodesData.length - 1 });
-
-                if (comboTracker.length === 3 || idx === story.length - 1) {
-                    nodesData.push({ type: 'boss', targetNodesInfo: [...comboTracker], label: 'BOSS' });
-                    comboTracker = [];
-                }
+                if (comboTracker.length === 3 || idx === story.length - 1) { nodesData.push({ type: 'boss', targetNodesInfo: [...comboTracker], label: 'BOSS' }); comboTracker = []; }
             });
 
-            const mapContainer = document.getElementById('levelMap');
-            mapContainer.innerHTML = "";
+            const mapContainer = document.getElementById('levelMap'); mapContainer.innerHTML = "";
+            let autoTargetIdx = 0; let foundTarget = false;
+
             nodesData.forEach((node, idx) => {
+                const isCleared = clearedLevels.has(idx);
                 const div = document.createElement('div');
-                div.className = `level-node ${node.type === 'boss' ? 'boss-node' : ''} ${idx === 0 ? 'active' : ''}`;
-                div.id = `node-${idx}`;
-                div.innerText = node.label;
-                div.onclick = () => loadLevel(idx);
+                div.className = `level-node ${node.type === 'boss' ? 'boss-node' : ''} ${isCleared ? 'cleared' : ''}`;
+                div.id = `node-${idx}`; div.innerText = node.label; div.onclick = () => loadLevel(idx);
                 mapContainer.appendChild(div);
+                if (!isCleared && !foundTarget) { autoTargetIdx = idx; foundTarget = true; }
             });
 
-            document.getElementById('audioStatus').innerText = `✅ 全自动对齐成功！已生成 ${totalSentencesCount} 个小关卡！`;
-            document.getElementById('ttsBtn').disabled = false;
-            document.getElementById('micBtn').disabled = false;
+            if (!foundTarget && nodesData.length > 0) autoTargetIdx = nodesData.length - 1;
+            document.getElementById('ttsBtn').disabled = false; document.getElementById('micBtn').disabled = false;
             document.getElementById('passBtn').style.display = 'inline-block';
-            loadLevel(0);
+            if(audioBuffer) document.getElementById('audioStatus').innerText = `✅ 声音已就绪！已智能对齐切分 ${story.length} 个关卡。`;
+            updateStars(); loadLevel(autoTargetIdx);
         }
 
         function renderSubtitle(node) {
-            const container = document.getElementById('engText');
-            container.innerHTML = "";
-            clearInterval(highlightTimer);
-            let wordTrackingArray = [];
-
+            const container = document.getElementById('engText'); container.innerHTML = ""; clearInterval(highlightTimer); let wordTrackingArray = [];
             if (nodesData.length === 0) return wordTrackingArray;
-
             if (node.type === 'normal') {
-                const div = document.createElement('div');
-                div.className = "word-container";
-                node.en.split(" ").forEach((word, wIdx) => {
-                    const span = document.createElement('span');
-                    span.className = 'word-span';
-                    span.id = `span-0-${wIdx}`;
-                    span.innerText = word + " ";
-                    div.appendChild(span);
-                    wordTrackingArray.push(`span-0-${wIdx}`);
-                });
+                const div = document.createElement('div'); div.className = "word-container";
+                node.en.split(" ").forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = `span-0-${wIdx}`; span.innerText = word + " "; div.appendChild(span); wordTrackingArray.push(`span-0-${wIdx}`); });
                 container.appendChild(div);
             } else {
                 node.targetNodesInfo.forEach((info, order) => {
-                    const blockDiv = document.createElement('div');
-                    blockDiv.className = `boss-sentence-block b-block-${order}`;
-                    if(order === 0) blockDiv.classList.add('active-sentence');
-                    
-                    const englishRow = document.createElement('div');
-                    englishRow.className = 'boss-english-row';
-                    nodesData[info.mapIdx].en.split(" ").forEach((word, wIdx) => {
-                        const span = document.createElement('span');
-                        span.className = 'word-span';
-                        span.id = `span-${order}-${wIdx}`;
-                        span.innerText = word + " ";
-                        englishRow.appendChild(span);
-                        wordTrackingArray.push({ id: `span-${order}-${wIdx}`, block: order });
-                    });
-                    blockDiv.appendChild(englishRow);
-                    container.appendChild(blockDiv);
+                    const blockDiv = document.createElement('div'); blockDiv.className = `boss-sentence-block b-block-${order}`; if(order === 0) blockDiv.classList.add('active-sentence');
+                    const englishRow = document.createElement('div'); englishRow.className = 'boss-english-row';
+                    nodesData[info.mapIdx].en.split(" ").forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = `span-${order}-${wIdx}`; span.innerText = word + " "; englishRow.appendChild(span); wordTrackingArray.push({ id: `span-${order}-${wIdx}`, block: order }); });
+                    blockDiv.appendChild(englishRow); container.appendChild(blockDiv);
                 });
             }
             return wordTrackingArray;
         }
 
-        function playParentAudio() {
-            initAudioContext();
-            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
-            activeSourcesList = [];
-            // 如果孩子自己的录音正在播放，先暂停它
+        // 轨A：请求局域网自建 NAS 接口进行播放
+        async function playMicrosoftAudio() {
+            if (currentAiAudio) currentAiAudio.pause();
             if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
-            
+            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
             clearInterval(highlightTimer);
 
-            const node = nodesData[currentIndex];
-            if (!audioBuffer) return;
+            const node = nodesData[currentIndex]; if (!node) return;
+            let textToSpeak = ""; if (node.type === 'normal') textToSpeak = node.en; else node.targetNodesInfo.forEach(info => { textToSpeak += nodesData[info.mapIdx].en + ". "; });
+            const apiEndpoint = document.getElementById('nasIpInput').value.trim(); const voiceType = document.getElementById('voiceSelect').value;
+            let requestUrl = apiEndpoint.endsWith('/api/tts') ? apiEndpoint : apiEndpoint.replace(/\/$/, '') + '/api/tts';
+            try {
+                const response = await fetch(requestUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: textToSpeak, voice_type: voiceType, speed: currentPlaybackRate }) });
+                const blob = await response.blob(); const audioUrl = URL.createObjectURL(blob);
+                currentAiAudio = new Audio(audioUrl); currentAiAudio.play();
+                const wordIdList = renderSubtitle(node); let timePerWord = (380 / currentPlaybackRate); let currentWordPointer = 0;
+                highlightTimer = setInterval(() => {
+                    document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight'));
+                    let currentItem = wordIdList[currentWordPointer];
+                    if (currentItem) {
+                        let targetId = typeof currentItem === 'string' ? currentItem : currentItem.id;
+                        if(typeof currentItem === 'object') { document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence')); document.querySelector(`.b-block-${currentItem.block}`).classList.add('active-sentence'); }
+                        const currentSpan = document.getElementById(targetId); if (currentSpan) currentSpan.classList.add('highlight'); currentWordPointer++;
+                    } else { clearInterval(highlightTimer); }
+                }, timePerWord);
+            } catch (err) { document.getElementById('statusMessage').innerText = "❌ 调取 AI 失败，请确认局域网 5034 容器运行状态。"; }
+        }
 
-            let playQueue = [];
-            let totalDuration = 0;
+        // 轨B：利用 Web Audio 裁剪算法，秒级还原当前关卡对应的家长分段音频
+        function playParentAudio() {
+            initAudioContext();
+            if (currentAiAudio) currentAiAudio.pause();
+            if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
+            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); activeSourcesList = [];
+            clearInterval(highlightTimer);
 
+            const node = nodesData[currentIndex]; if (!audioBuffer) return;
+
+            let playQueue = []; let totalDuration = 0;
             if (node.type === 'normal') {
-                let start = sentenceTimestamps[node.scriptIdx];
-                let end = sentenceTimestamps[node.scriptIdx + 1];
-                playQueue.push({ start, duration: end - start, delay: 0 });
-                totalDuration = (end - start) / currentPlaybackRate;
+                let start = sentenceTimestamps[node.scriptIdx]; let end = sentenceTimestamps[node.scriptIdx + 1];
+                playQueue.push({ start, duration: end - start, delay: 0 }); totalDuration = (end - start) / currentPlaybackRate;
             } else {
                 let currentDelay = 0;
                 node.targetNodesInfo.forEach(info => {
-                    let start = sentenceTimestamps[info.scriptIdx];
-                    let end = sentenceTimestamps[info.scriptIdx + 1];
-                    playQueue.push({ start, duration: end - start, delay: currentDelay });
-                    currentDelay += ((end - start) / currentPlaybackRate);
+                    let start = sentenceTimestamps[info.scriptIdx]; let end = sentenceTimestamps[info.scriptIdx + 1];
+                    playQueue.push({ start, duration: end - start, delay: currentDelay }); currentDelay += ((end - start) / currentPlaybackRate);
                 });
                 totalDuration = currentDelay;
             }
 
-            const wordIdList = renderSubtitle(node);
-            let timePerWord = (totalDuration * 1000) / wordIdList.length;
-            let currentWordPointer = 0;
-
+            const wordIdList = renderSubtitle(node); let timePerWord = (totalDuration * 1000) / wordIdList.length; let currentWordPointer = 0;
             highlightTimer = setInterval(() => {
                 document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight'));
                 let currentItem = wordIdList[currentWordPointer];
                 if (currentItem) {
                     let targetId = typeof currentItem === 'string' ? currentItem : currentItem.id;
-                    if(typeof currentItem === 'object') {
-                        document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence'));
-                        document.querySelector(`.b-block-${currentItem.block}`).classList.add('active-sentence');
-                    }
-                    const currentSpan = document.getElementById(targetId);
-                    if (currentSpan) currentSpan.classList.add('highlight');
-                    currentWordPointer++;
-                } else {
-                    clearInterval(highlightTimer);
-                }
+                    if(typeof currentItem === 'object') { document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence')); document.querySelector(`.b-block-${currentItem.block}`).classList.add('active-sentence'); }
+                    const currentSpan = document.getElementById(targetId); if (currentSpan) currentSpan.classList.add('highlight'); currentWordPointer++;
+                } else { clearInterval(highlightTimer); }
             }, timePerWord);
 
             playQueue.forEach(item => {
                 setTimeout(() => {
                     if (nodesData[currentIndex] !== node) return;
-                    let source = audioContext.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.playbackRate.value = currentPlaybackRate;
-                    source.connect(audioContext.destination);
-                    source.start(0, item.start, item.duration);
-                    activeSourcesList.push(source);
+                    let source = audioContext.createBufferSource(); source.buffer = audioBuffer; source.playbackRate.value = currentPlaybackRate;
+                    source.connect(audioContext.destination); source.start(0, item.start, item.duration); activeSourcesList.push(source);
                 }, item.delay * 1000);
             });
         }
 
-        // 播放小朋友刚录的声音
-        function playKidsAudio() {
-            // 先停止家长的音频
-            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
-            if (kidsAudioBlobUrl) {
-                kidsAudioPlayer.src = kidsAudioBlobUrl;
-                kidsAudioPlayer.play();
-                document.getElementById('statusMessage').innerText = "🎧 正在回放刚才的录音...";
-            }
-        }
+        function playKidsAudio() { activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); if (kidsAudioBlobUrl) { kidsAudioPlayer.src = kidsAudioBlobUrl; kidsAudioPlayer.play(); } }
+        function playHistoryPassAudio() { if (historyPassAudioUrl) { if (currentAiAudio) currentAiAudio.pause(); activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); kidsAudioPlayer.src = historyPassAudioUrl; kidsAudioPlayer.play(); } }
 
-        function loadLevel(idx) {
+        async function loadLevel(idx) {
             if (nodesData.length === 0) return;
-            if (idx > 0 && !clearedLevels.has(idx - 1) && idx !== currentIndex) {
-                document.getElementById('statusMessage').innerText = "🔒 前方的领地还在被怪兽占领哦！";
-                return;
-            }
+            if (idx > 0 && !clearedLevels.has(idx - 1) && idx !== currentIndex) { document.getElementById('statusMessage').innerText = "🔒 前方的领地还在被怪兽占领哦！"; return; }
+            if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
             activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
-            if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
-            
-            // 切换关卡时，重置并隐藏录音回放按钮
+
             document.getElementById('playMyAudioBtn').style.display = 'none';
-            kidsAudioBlobUrl = null;
+            document.getElementById('playHistoryAudioBtn').style.display = 'none';
+            document.getElementById('playParentAudioBtn').style.display = audioBuffer ? 'inline-block' : 'none'; // 存在外部切分音频时亮起
             
+            kidsAudioBlobUrl = null; currentPassAudioBlob = null; historyPassAudioUrl = null;
             clearInterval(highlightTimer);
             
-            currentIndex = idx;
-            const node = nodesData[idx];
-            
-            renderSubtitle(node);
+            currentIndex = idx; const node = nodesData[idx]; renderSubtitle(node);
             document.getElementById('scoreDisplay').innerText = "";
-            
             const bossArea = document.getElementById('bossArea');
-            if (node.type === 'boss') {
-                bossArea.style.display = 'block';
-                document.getElementById('bossHp').style.width = '100%';
-                document.getElementById('bossName').innerText = `👹 遇到镇关大 BOSS！请连续一口气把前面 ${node.targetNodesInfo.length} 句话一并背诵出来释放绝招！`;
-                playBossRoar();
-            } else {
-                bossArea.style.display = 'none';
-            }
+            if (node.type === 'boss') { bossArea.style.display = 'block'; document.getElementById('bossHp').style.width = clearedLevels.has(idx) ? '0%' : '100%'; } else { bossArea.style.display = 'none'; }
             
-            document.querySelectorAll('.level-node').forEach((n, nIdx) => {
-                n.classList.remove('active');
-                if (nIdx === currentIndex) n.classList.add('active');
-            });
+            document.querySelectorAll('.level-node').forEach((n, nIdx) => { n.classList.remove('active'); if (nIdx === currentIndex) n.classList.add('active'); });
+            
+            const select = document.getElementById('courseSelect');
+            if (select.value) {
+                const savedBlob = await getAudioFromDB("passed_voices", `${select.value}_${idx}`);
+                if (savedBlob) {
+                    historyPassAudioUrl = URL.createObjectURL(savedBlob);
+                    document.getElementById('playHistoryAudioBtn').style.display = 'inline-block';
+                }
+            }
             updateStars();
         }
 
         function calculateKidsComboScore(node, recognized) {
-            let targetText = "";
-            if (node.type === 'normal') targetText = node.en;
-            else node.targetNodesInfo.forEach(info => { targetText += " " + nodesData[info.mapIdx].en; });
-
+            let targetText = ""; if (node.type === 'normal') targetText = node.en; else node.targetNodesInfo.forEach(info => { targetText += " " + nodesData[info.mapIdx].en; });
             let arr1 = targetText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").split(" ").filter(Boolean);
             let arr2 = recognized.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").split(" ").filter(Boolean);
-            
-            let match = 0;
-            let tempArr2 = [...arr2];
-            arr1.forEach(w => { 
-                let idx = tempArr2.indexOf(w);
-                if(idx !== -1) {
-                    match++;
-                    tempArr2.splice(idx, 1);
-                }
-            });
-            
+            let match = 0; let tempArr2 = [...arr2]; arr1.forEach(w => { let idx = tempArr2.indexOf(w); if(idx !== -1) { match++; tempArr2.splice(idx, 1); } });
             let baseRate = match / arr1.length;
-            
-            if (baseRate >= 0.6) return 95 + Math.floor(Math.random() * 5); 
-            if (baseRate >= 0.3) return 85 + Math.floor(Math.random() * 10); 
-            if (baseRate >= 0.15) return 75 + Math.floor(Math.random() * 10); 
-            return 50 + Math.floor(baseRate * 100); 
+            if (baseRate >= 0.6) return 95 + Math.floor(Math.random() * 5);
+            if (baseRate >= 0.3) return 85 + Math.floor(Math.random() * 10);
+            if (baseRate >= 0.15) return 75 + Math.floor(Math.random() * 10);
+            return 50 + Math.floor(baseRate * 100);
         }
 
         function updateStars() {
-            let stars = "";
-            nodesData.forEach((node, i) => {
-                if (node.type === 'boss') stars += clearedLevels.has(i) ? "💀 " : "😈 ";
-                else stars += clearedLevels.has(i) ? "⭐ " : "⚪ ";
-            });
+            let stars = ""; nodesData.forEach((node, i) => { if (node.type === 'boss') stars += clearedLevels.has(i) ? "💀 " : "😈 "; else stars += clearedLevels.has(i) ? "⭐ " : "⚪ "; });
             document.getElementById('starContainer').innerText = stars;
-
-            if (clearedLevels.size === nodesData.length && nodesData.length > 0) {
-                document.getElementById('badge').style.display = 'block';
-                document.getElementById('engText').innerText = "🎉 恭喜文一墨通关全部大挑战！成为演说小冠军！";
-            }
+            if (clearedLevels.size === nodesData.length && nodesData.length > 0) document.getElementById('badge').style.display = 'block';
+            else document.getElementById('badge').style.display = 'none';
         }
 
         function forcePass() {
             clearedLevels.add(currentIndex);
-            const node = nodesData[currentIndex];
-            if (node.type === 'boss') {
-                document.getElementById('bossHp').style.width = '0%';
-                document.getElementById('bossName').innerText = "💥 连击吟唱成功！大 BOSS 被你瞬间秒杀啦！";
-                playExplodeSound();
-            } else {
-                playCorrectSound();
+            const select = document.getElementById('courseSelect');
+            if (select.value) {
+                saveCourseProgressToStorage(select.value);
+                if (currentPassAudioBlob) saveAudioToDB("passed_voices", `${select.value}_${currentIndex}`, currentPassAudioBlob);
             }
+            const node = nodesData[currentIndex];
+            if (node.type === 'boss') { document.getElementById('bossHp').style.width = '0%'; playExplodeSound(); } else { playCorrectSound(); }
             document.getElementById(`node-${currentIndex}`).classList.add('cleared');
-            setTimeout(() => {
-                if (currentIndex < nodesData.length - 1) loadLevel(currentIndex + 1);
-                else updateStars();
-            }, 1200);
+            setTimeout(() => { if (currentIndex < nodesData.length - 1) loadLevel(currentIndex + 1); else updateStars(); }, 1200);
         }
 
+        // =================【🎤 核心机制优化：高包容度超耐心录音打分引擎】=================
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
         if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.continuous = true; 
-            recognition.interimResults = true; 
-            
-            let silenceTimer = null;
-            let finalTranscript = "";
+            recognition = new SpeechRecognition(); recognition.lang = 'en-US'; 
+            recognition.continuous = true;      // 关键：换气不终止
+            recognition.interimResults = true;   
+            let silenceTimer = null; let finalTranscript = "";
             
             recognition.onstart = () => {
-                isListening = true;
-                finalTranscript = "";
-                document.getElementById('micBtn').className = "recording";
+                isListening = true; finalTranscript = ""; 
+                document.getElementById('micBtn').className = "recording"; 
                 document.getElementById('micBtn').innerText = "🛑 我在听，慢慢读...";
-                document.getElementById('statusMessage').innerText = "🎤 平板正在耐心倾听，慢慢读，遇到不会的可以停顿思考哦...";
-                // 开始识别时隐藏播放按钮
-                document.getElementById('playMyAudioBtn').style.display = 'none';
+                document.getElementById('statusMessage').innerText = "🎤 平板在耐心倾听中... 卡壳、停顿或者读得慢都没关系，读完系统会自动等待判定。";
+                document.getElementById('playMyAudioBtn').style.display = 'none'; currentPassAudioBlob = null; 
                 
+                // 给孩子跟读时也加上柔和的自适应跑马灯暗示
                 const node = nodesData[currentIndex];
                 let durationEstimate = node.type === 'normal' ? 5 : 12;
                 let wordsCount = document.querySelectorAll('.word-span').length;
-                let step = (durationEstimate * 1000) / wordsCount;
-                let count = 0;
-                clearInterval(highlightTimer);
+                let step = (durationEstimate * 1000) / wordsCount; let count = 0;
                 highlightTimer = setInterval(() => {
                     document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight'));
-                    let sp = document.querySelectorAll('.word-span')[count];
-                    if(sp) { sp.classList.add('highlight'); count++; }
-                    else clearInterval(highlightTimer);
+                    let sp = document.querySelectorAll('.word-span')[count]; if(sp) { sp.classList.add('highlight'); count++; } else clearInterval(highlightTimer);
                 }, step);
             };
             
             recognition.onend = () => {
-                isListening = false;
-                clearTimeout(silenceTimer);
-                document.getElementById('micBtn').className = "";
-                document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
-                
-                // 停止真实录音
-                if (kidsMediaRecorder && kidsMediaRecorder.state === "recording") {
-                    kidsMediaRecorder.stop();
-                }
-                
-                if (finalTranscript.trim() === "") {
-                     document.getElementById('statusMessage').innerText = "🤔 好像没有听到声音哦，大点声再试一次！";
-                     return;
-                }
-
-                const node = nodesData[currentIndex];
-                let finalScore = calculateKidsComboScore(node, finalTranscript);
-
-                document.getElementById('scoreDisplay').innerText = finalScore + "分";
-                
-                if (finalScore >= 75) {
-                    let feedback = finalScore >= 90 ? "🌟 发音太标准啦！通顺又流利，完美过关！" : "🌟 坚持读完了整句，太棒了！成功击破！";
-                    document.getElementById('statusMessage').innerHTML = `${feedback}<br><span style='font-size:13px; color:#aaa'>识别到的声音: "${finalTranscript}"</span>`;
-                    forcePass();
-                } else {
-                    document.getElementById('statusMessage').innerHTML = `👍 声音真响亮！不过好像漏读了一些哦，听听原声，再对比自己的声音试试吧！<br><span style='font-size:13px; color:#aaa'>识别到的声音: "${finalTranscript}"</span>`;
-                    playErrorSound();
-                }
+                isListening = false; document.getElementById('micBtn').className = ""; document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
+                if (kidsMediaRecorder && kidsMediaRecorder.state === "recording") kidsMediaRecorder.stop();
             };
             
             recognition.onresult = (event) => {
-                let fullText = "";
-                for (let i = 0; i < event.results.length; ++i) {
-                    fullText += event.results[i][0].transcript + " ";
-                }
-                finalTranscript = fullText;
-
-                clearTimeout(silenceTimer);
-                silenceTimer = setTimeout(() => {
-                    if (isListening) recognition.stop(); 
-                }, 3500); 
+                let fullText = ""; for (let i = 0; i < event.results.length; ++i) { fullText += event.results[i][0].transcript + " "; }
+                finalTranscript = fullText; 
+                
+                // 🌟 核心时间延长逻辑：只有当温一墨彻底停止说话超过 6.5 秒时，才触发识别结束！
+                // 这极大包容了温一墨读得慢、磕磕绊绊的习惯，绝不会抢拍强行拦截打分！
+                clearTimeout(silenceTimer); 
+                silenceTimer = setTimeout(() => { if (isListening) recognition.stop(); }, 6500); 
             };
         }
 
         async function toggleListening() {
-            initAudioContext();
-            if (isListening) {
-                recognition.stop(); 
-                if (kidsMediaRecorder && kidsMediaRecorder.state === "recording") {
-                    kidsMediaRecorder.stop();
-                }
-            } else {
-                // 如果还没有初始化真实麦克风录制系统，就初始化它
+            if (currentAiAudio) currentAiAudio.pause();
+            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
+            if (isListening) { recognition.stop(); } else {
                 if (!kidsMediaRecorder) {
                     try {
                         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         kidsMediaRecorder = new MediaRecorder(stream);
-                        kidsMediaRecorder.ondataavailable = (e) => {
-                            kidsAudioChunks.push(e.data);
-                        };
+                        kidsMediaRecorder.ondataavailable = (e) => { kidsAudioChunks.push(e.data); };
                         kidsMediaRecorder.onstop = () => {
                             const blob = new Blob(kidsAudioChunks, { type: 'audio/webm' });
-                            kidsAudioBlobUrl = URL.createObjectURL(blob);
-                            // 录制结束，显示【听我的录音】按钮
+                            kidsAudioBlobUrl = URL.createObjectURL(blob); currentPassAudioBlob = blob; 
                             document.getElementById('playMyAudioBtn').style.display = 'inline-block';
+                            
+                            // 停止后开始打分
+                            if (finalTranscript.trim() !== "") {
+                                const node = nodesData[currentIndex]; let finalScore = calculateKidsComboScore(node, finalTranscript);
+                                document.getElementById('scoreDisplay').innerText = finalScore + "分";
+                                if (finalScore >= 75) forcePass();
+                                else document.getElementById('statusMessage').innerText = `👍 声音真响亮！拿到了 ${finalScore} 分，听听 AI 或家长的发音，对比自己的声音重新挑战吧！`;
+                            }
                         };
-                    } catch (err) {
-                        console.warn("麦克风真实录音权限被拒绝或不支持，仅使用语音识别", err);
-                    }
+                    } catch (err) {}
                 }
-                
-                kidsAudioChunks = [];
-                if (kidsMediaRecorder && kidsMediaRecorder.state === "inactive") {
-                    kidsMediaRecorder.start();
-                }
-                recognition.start();
+                kidsAudioChunks = []; finalTranscript = "";
+                if (kidsMediaRecorder) kidsMediaRecorder.start(); if (recognition) recognition.start();
             }
         }
-
-        function playCorrectSound() {
-            let osc = audioContext.createOscillator(); let gain = audioContext.createGain();
-            osc.connect(gain); gain.connect(audioContext.destination);
-            osc.frequency.setValueAtTime(523.25, audioContext.currentTime);
-            osc.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.08);
-            gain.gain.setValueAtTime(0.15, audioContext.currentTime);
-            osc.start(); osc.stop(audioContext.currentTime + 0.15);
-        }
-        function playErrorSound() {
-            let osc = audioContext.createOscillator(); let gain = audioContext.createGain();
-            osc.connect(gain); gain.connect(audioContext.destination);
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(349.23, audioContext.currentTime);
-            gain.gain.setValueAtTime(0.15, audioContext.currentTime);
-            osc.start(); osc.stop(audioContext.currentTime + 0.15);
-        }
-        function playBossRoar() {
-            let osc = audioContext.createOscillator(); let gain = audioContext.createGain();
-            osc.connect(gain); gain.connect(audioContext.destination);
-            osc.type = 'sawtooth'; osc.frequency.linearRampToValueAtTime(120, audioContext.currentTime + 0.5);
-            gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-            osc.start(); osc.stop(audioContext.currentTime + 0.5);
-        }
-        function playExplodeSound() {
-            let osc = audioContext.createOscillator(); let gain = audioContext.createGain();
-            osc.connect(gain); gain.connect(audioContext.destination);
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioContext.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 0.6);
-            gain.gain.setValueAtTime(0.25, audioContext.currentTime);
-            osc.start(); osc.stop(audioContext.currentTime + 0.6);
-        }
+        function playCorrectSound() { let osc = audioContext.createOscillator(); let gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.frequency.setValueAtTime(523.25, audioContext.currentTime); osc.start(); osc.stop(audioContext.currentTime + 0.15); }
+        function playExplodeSound() { let osc = audioContext.createOscillator(); let gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioContext.currentTime); osc.start(); osc.stop(audioContext.currentTime + 0.6); }
     </script>
 </body>
 </html>
