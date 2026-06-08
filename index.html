@@ -19,12 +19,13 @@
             --hp-color: #e74c3c;
             --parent-color: #00cec9;
             --admin-color: #6c5ce7;
+            --diandux-color: #0984e3;
         }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
             color: #333;
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             padding: 15px;
             text-align: center;
@@ -33,7 +34,6 @@
         }
         h1 { color: #d32f2f; margin-bottom: 5px; font-size: 28px; }
         
-        /* 🕹️ 首页精简版选课中心布局 */
         .game-top-bar {
             background: white; padding: 15px; border-radius: 20px;
             box-shadow: 0 8px 24px rgba(211,47,47,0.04); margin-bottom: 15px;
@@ -43,8 +43,19 @@
             padding: 10px; border-radius: 10px; border: 2px solid var(--primary-color);
             font-size: 16px; background: #fafafa; flex: 1; min-width: 200px; font-weight: bold; color: #2c3e50;
         }
+
+        .mode-switch-container {
+            display: flex; background: #eee; border-radius: 12px; padding: 4px; margin-bottom: 15px;
+        }
+        .mode-tab {
+            flex: 1; padding: 10px; text-align: center; font-weight: bold; font-size: 16px;
+            border-radius: 10px; cursor: pointer; transition: all 0.2s; color: #7f8c8d;
+        }
+        .mode-tab.active-mode { background: white; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .mode-tab.active-mode.adventure-tab { color: var(--primary-color); }
+        .mode-tab.active-mode.diandux-tab { color: var(--diandux-color); }
         
-        /* 🛠️ 课本工厂遮罩弹窗层样式 */
+        /* 🛠️ 课本工厂遮罩层 */
         .modal-overlay {
             display: none; position: fixed; top:0; left:0; width:100%; height:100%;
             background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000;
@@ -54,14 +65,8 @@
             background: white; padding: 25px; border-radius: 24px; width: 90%; max-width: 650px;
             max-height: 85vh; overflow-y: auto; text-align: left; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
-        .modal-content textarea {
-            width: 100%; height: 130px; margin-top: 5px; margin-bottom: 15px;
-            border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box;
-            font-size: 14px; line-height: 1.4;
-        }
-        .modal-input {
-            width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;
-        }
+        .modal-content textarea { width: 100%; height: 130px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-sizing: border-box; font-size: 14px; line-height: 1.4; }
+        .modal-input { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
 
         .map-container {
             display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;
@@ -78,36 +83,53 @@
         .level-node.boss-node.active { background: var(--boss-color); border-color: #8e44ad; }
         .level-node.cleared { background: var(--success-color); color: white; border-color: #27ae60; }
 
-        .boss-battlefield {
-            display: none; background: #2c3e50; color: white; padding: 15px; border-radius: 16px; margin-bottom: 15px;
-        }
+        .boss-battlefield { display: none; background: #2c3e50; color: white; padding: 15px; border-radius: 16px; margin-bottom: 15px; }
         .hp-bar-bg { width: 100%; background: #7f8c8d; height: 15px; border-radius: 10px; margin-top: 5px; overflow: hidden; }
         .hp-bar-fill { width: 100%; background: var(--hp-color); height: 100%; transition: width 0.5s; }
 
-        .card {
-            background: white; border-radius: 24px; padding: 35px 25px;
-            box-shadow: 0 10px 30px rgba(211, 47, 47, 0.06); border: 2px solid #ffe0e0; margin-bottom: 15px;
-        }
+        .card { background: white; border-radius: 24px; padding: 35px 25px; box-shadow: 0 10px 30px rgba(211, 47, 47, 0.06); border: 2px solid #ffe0e0; margin-bottom: 15px; }
         .word-container { font-size: 26px; font-weight: bold; color: #2c3e50; line-height: 1.6; margin-bottom: 15px; min-height: 80px; text-align: left; }
         
-        .boss-sentence-block {
-            margin-bottom: 15px; padding: 12px 15px; border-radius: 12px;
-            border-left: 5px solid #dfe6e9; text-align: left; background: #fafafa;
+        /* NCE 布局 */
+        .diandux-layout { display: none; grid-template-columns: 250px 1fr; gap: 15px; text-align: left; margin-bottom: 15px; }
+        .diandux-sidebar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.02); border: 2px solid #e3ecef; max-height: 500px; overflow-y: auto; }
+        .sidebar-title { font-weight: bold; font-size: 14px; color: #7f8c8d; margin: 10px 0 5px 0; text-transform: uppercase; }
+        .sidebar-item { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; color: #34495e; margin-bottom: 4px; transition: all 0.15s; }
+        .sidebar-item:hover { background: #f5f6fa; }
+        .sidebar-item.active-item { background: var(--diandux-color); color: white; }
+        
+        .diandux-main-book { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.02); border: 2px solid #e3ecef; max-height: 500px; overflow-y: auto; }
+        
+        /* 点读大行与磁吸单词样式 */
+        .diandux-line {
+            padding: 12px 14px; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
+            transition: all 0.15s; font-size: 23px; font-weight: bold; color: #2c3e50; line-height: 1.6;
+            display: flex; flex-wrap: wrap; align-items: center;
         }
-        .boss-sentence-block.active-sentence {
-            border-left-color: var(--boss-color); background: rgba(155, 89, 182, 0.04);
+        .diandux-line:hover { background: rgba(9, 132, 227, 0.03); }
+        .diandux-line.diandux-active-line {
+            background: rgba(9, 132, 227, 0.07) !important; color: var(--diandux-color);
+            box-shadow: inset 4px 0 0 var(--diandux-color); padding-left: 18px;
         }
-        .boss-english-row { font-size: 24px; font-weight: bold; color: #2c3e50; line-height: 1.5; }
+        .diandux-num { margin-right: 10px; color: #95a5a6; min-width: 25px; display: inline-block; }
+        
+        /* 🌟 亮点：可单独被戳点击的微型单词纽扣样式 */
+        .diandux-word {
+            display: inline-block; padding: 0 4px; margin: 2px 2px; border-radius: 6px;
+            transition: all 0.1s; cursor: pointer;
+        }
+        .diandux-word:hover { background: rgba(9, 132, 227, 0.15); color: #0984e3; transform: scale(1.08); }
+        .diandux-word:active { background: #0984e3; color: white; }
 
+        .boss-sentence-block { margin-bottom: 15px; padding: 12px 15px; border-radius: 12px; border-left: 5px solid #dfe6e9; text-align: left; background: #fafafa; }
+        .boss-sentence-block.active-sentence { border-left-color: var(--boss-color); background: rgba(155, 89, 182, 0.04); }
+        .boss-english-row { font-size: 24px; font-weight: bold; color: #2c3e50; line-height: 1.5; }
         .word-span { display: inline-block; margin: 0 4px; transition: color 0.15s, transform 0.15s; }
         .word-span.highlight { color: #f39c12; transform: scale(1.15); text-shadow: 0 0 5px rgba(243,156,18,0.3); }
         .score-box { font-size: 45px; font-weight: bold; margin-top: 10px; color: var(--primary-color); }
         
         .controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 20px; }
-        button {
-            background-color: var(--primary-color); color: white; border: none; padding: 14px 30px;
-            font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-        }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 14px 30px; font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
         button:disabled { background-color: #b2bec3; cursor: not-allowed; }
         #micBtn { background-color: #0984e3; }
         #micBtn.recording { background-color: #e17055; animation: pulse 1s infinite; }
@@ -116,32 +138,38 @@
         #playHistoryAudioBtn { background-color: #16a085; }
         #playParentAudioBtn { background-color: var(--parent-color); } 
         
-        /* 顶部功能按钮群 */
         .top-btn { padding: 10px 16px; font-size: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; border: none; color: white;}
         .factory-btn { background-color: var(--admin-color); }
         .reset-btn { background-color: #f39c12; }
         .delete-btn { background-color: #e74c3c; }
         .save-btn { background-color: #2ecc71; width: 100%; padding: 14px; font-size: 16px; border-radius: 12px; margin-top: 10px;}
         .close-btn { background-color: #95a5a6; padding: 6px 12px; font-size: 12px; border-radius: 6px; float: right; cursor: pointer; color: white; border:none;}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <h1>🌸 文一墨的纯英演说大冒险 🌸</h1>
     
-    <!-- 🕹️ 极简首页顶部控制中心 -->
+    <!-- 顶部控制中心 -->
     <div class="game-top-bar">
         <select id="courseSelect" class="course-selector" onchange="switchCourse()">
             <option value="">-- 🔍 戳这里挑选你想挑战的课本 --</option>
         </select>
         
         <div style="display: flex; gap: 8px;">
-            <button class="top-btn reset-btn" onclick="resetCurrentCourseProgress()">🔄 重新挑战本课</button>
+            <button id="resetProgressBtn" class="top-btn reset-btn" onclick="resetCurrentCourseProgress()">🔄 重新挑战本课</button>
             <button class="top-btn factory-btn" onclick="openFactoryModal()">🛠️ 制作/管理课本</button>
         </div>
     </div>
 
-    <!-- 🛠️ 隐藏的课本制作加工厂（独立弹窗页面） -->
+    <!-- 双模式切换视窗选项卡 -->
+    <div class="mode-switch-container">
+        <div id="adventureTab" class="mode-tab active-mode adventure-tab" onclick="changeGameMode('adventure')">🚀 冒险大冲关模式</div>
+        <div id="dianduxTab" class="mode-tab diandux-tab" onclick="changeGameMode('diandux')">🎯 NCE 随心点读模式</div>
+    </div>
+
+    <!-- 🛠️ 课本制作加工厂（独立弹窗层） -->
     <div id="factoryModal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-btn" onclick="closeFactoryModal()">❌ 关闭管理台</button>
@@ -151,19 +179,19 @@
             <label style="font-weight: bold; color: #2c3e50;">1️⃣ 局域网 NAS 中转站 IP 配置：</label>
             <input type="text" id="nasIpInput" class="modal-input" placeholder="例如: http://192.168.50.142:5034" oninput="localStorage.setItem('yimo_nas_ip', this.value)">
 
-            <label style="font-weight: bold; color: #2c3e50; display: block;">2️⃣ 剧本内容粘贴区（严格一句一行，自动兼容中文注释）：</label>
-            <textarea id="textInput" placeholder="Hello everyone, I’m Wen Yimo...\nSichuan is a beautiful place..."></textarea>
+            <label style="font-weight: bold; color: #2c3e50; display: block;">2️⃣ 剧本内容粘贴区（支持 #单元 ##课时 高精结构划分）：</label>
+            <textarea id="textInput" placeholder="# Unit 1 三国英雄\n## Lesson 1 桃园结义\nHello everyone...\n## Lesson 2 结拜兄弟\nThey promised..."></textarea>
 
             <label style="font-weight: bold; color: #2c3e50; display: block;">3️⃣ 导入家长录制的完整示范长录音 (选填)：</label>
             <input type="file" id="audioFile" accept="audio/*" class="modal-input" style="border: 1px dashed var(--admin-color); padding: 8px;" onchange="handleAudioUpload(this)">
-            <div id="audioStatus" style="font-size: 13px; color: #7f8c8d; font-weight: bold; margin-top: -10px; margin-bottom: 15px;">🔍 选填项目。导入后系统会自动进行声音呼吸停顿点对齐[cite: 5]。</div>
+            <div id="audioStatus" style="font-size: 13px; color: #7f8c8d; font-weight: bold; margin-top: -10px; margin-bottom: 15px;">🔍 导入后系统会自动分析波形呼吸停顿点对齐。</div>
 
-            <label style="font-weight: bold; color: #2c3e50; display: block;">4️⃣ 默认微软 AI 磨耳朵声优：</label>
+            <label style="font-weight: bold; color: #2c3e50; display: block;">4️⃣ 默认微软 AI 磨耳朵外教：</label>
             <select id="voiceSelect" class="modal-input" style="padding: 8px;">
-                <option value="en-US-AnaNeural">👶 活泼童声 - Ana (最适合小朋友)</option>
+                <option value="en-US-AnaNeural">👶 活泼童声 - Ana (强推)</option>
                 <option value="en-US-AriaNeural">👩 亲切女声 - Aria (标准美音)</option>
                 <option value="en-US-ChristopherNeural">👨 浑厚男声 - Christopher (充满力量感)</option>
-                <option value="en-US-SoniaNeural">👸 优雅英音 - Sonia (标准伦敦腔)</option>
+                <option value="en-GB-SoniaNeural">👸 优雅英音 - Sonia (标准伦敦腔)</option>
             </select>
 
             <button class="save-btn" onclick="saveNewBookToDatabase()">💾 打包封装并保存为新课本</button>
@@ -177,18 +205,26 @@
         <div class="hp-bar-bg"><div class="hp-bar-fill" id="bossHp"></div></div>
     </div>
 
-    <!-- 🗺️ 地图关卡区 -->
-    <div class="map-container" id="levelMap"></div>
-    <div class="star-reward" id="starContainer"></div>
+    <!-- 🗺️ 冒险地图视窗（冲关专用） -->
+    <div id="adventureMapView">
+        <div class="map-container" id="levelMap"></div>
+        <div class="star-reward" id="starContainer"></div>
+    </div>
 
-    <!-- 📖 字幕看板 -->
-    <div class="card">
+    <!-- 🎯 NCE 单元/课时/单句 联动智能点读视窗 -->
+    <div id="dianduxLayoutView" class="diandux-layout">
+        <div class="diandux-sidebar" id="dianduxSidebar"></div>
+        <div class="diandux-main-book" id="dianduxMainBook"></div>
+    </div>
+
+    <!-- 📖 主控制看板面层 -->
+    <div class="card" id="mainCardView">
         <div id="badge" style="display:none; font-size:50px;">👑 演说大冠军勋章 👑</div>
-        <div class="word-container" id="engText">请在右上方打开管理台制作课本，或者在左侧下拉菜单选择课本开启大冒险！</div>
+        <div class="word-container" id="engText">请选择课本开启大冒险！</div>
         <div class="score-box" id="scoreDisplay"></div>
     </div>
 
-    <!-- 🕹️ 游戏控制台 -->
+    <!-- 游戏核心操纵按钮 -->
     <div class="controls">
         <button id="ttsBtn" onclick="playMicrosoftAudio()" disabled>🔊 听 AI 外教读</button>
         <button id="playParentAudioBtn" onclick="playParentAudio()" style="display: none;">🔊 听家长读</button>
@@ -204,15 +240,19 @@
     <script>
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        let story = []; let nodesData = []; let currentIndex = 0; let clearedLevels = new Set();
+        let story = []; let structuredBook = []; let nodesData = []; let currentIndex = 0; let clearedLevels = new Set();
         let isListening = false; let currentPlaybackRate = 1.0; let highlightTimer = null; let currentAiAudio = null;
+        let currentGameMode = 'adventure'; 
 
         let audioBuffer = null; let sentenceTimestamps = []; let activeSourcesList = [];
+        
+        let currentDianduxUnitIdx = 0; let currentDianduxLessonIdx = 0; let currentDianduxGlobalLineIdx = 0;
+
         let kidsMediaRecorder = null; let kidsAudioChunks = [];
         let kidsAudioBlobUrl = null; let currentPassAudioBlob = null; let historyPassAudioUrl = null;    
         let kidsAudioPlayer = new Audio();
 
-        // 智能声音雷达感知参数（8.0秒耐心等待）
+        // 声音雷达（8秒高容错超耐心断句）
         let audioStream = null; let meterProcessor = null; let silenceStartTime = null; let lastVoiceDetectedTime = null;
         const SILENCE_THRESHOLD = 0.015; const MAX_SILENCE_DURATION = 8000; 
 
@@ -227,7 +267,6 @@
             initIndexedDB().then(() => { loadCourseDatabase(); });
         });
 
-        // =================【📀 局域网大容量多轨数据库引擎】=================
         function initIndexedDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open("YimoVoiceStorageV3", 3);
@@ -262,146 +301,245 @@
             ["passed_voices", "parent_long_buffers"].forEach(storeName => {
                 const transaction = dbInstance.transaction([storeName], "readwrite");
                 transaction.objectStore(storeName).openCursor().onsuccess = (e) => {
-                    const cursor = e.target.result; if (cursor) { if (cursor.key.startsWith(`${courseName}_`) || cursor.key === courseName) cursor.delete(); cursor.continue(); }
+                    const cursor = e.target.result; if (cursor) { if (cursor.key.startsWith(courseName + "_") || cursor.key === courseName) cursor.delete(); cursor.continue(); }
                 };
             });
         }
 
-        // =================【🎯 弹窗加工厂与数据状态管理器】=================
+        function parseBookRawTextStructure(rawText) {
+            let lines = rawText.split("\n").map(l => l.trim()).filter(l => l !== "");
+            let units = []; let currentUnit = null; let currentLesson = null; let globalLineCounter = 0;
+
+            let hasAnyMarker = lines.some(l => l.startsWith("#"));
+            if (!hasAnyMarker) {
+                currentUnit = { title: "第一单元", lessons: [] }; currentLesson = { title: "第一课时", sentences: [] };
+                currentUnit.lessons.push(currentLesson); units.push(currentUnit);
+            }
+
+            lines.forEach(line => {
+                if (line.startsWith("# ")) {
+                    currentUnit = { title: line.replace("# ", ""), lessons: [] }; units.push(currentUnit); currentLesson = null;
+                } else if (line.startsWith("## ")) {
+                    if (!currentUnit) { currentUnit = { title: "未命名单元", lessons: [] }; units.push(currentUnit); }
+                    currentLesson = { title: line.replace("## ", ""), sentences: [] }; currentUnit.lessons.push(currentLesson);
+                } else {
+                    if (!currentUnit) { currentUnit = { title: "第一单元", lessons: [] }; units.push(currentUnit); }
+                    if (!currentLesson) { currentLesson = { title: "第一课时", sentences: [] }; currentUnit.lessons.push(currentLesson); }
+                    currentLesson.sentences.push({ raw: line, globalIdx: globalLineCounter++ });
+                }
+            });
+            
+            story = [];
+            units.forEach(u => { u.lessons.forEach(l => { l.sentences.forEach(s => { story.push(s.raw); }); }); });
+            return units;
+        }
+
+        // =================【🎯 游戏核心玩法模式中心切换】=================
+        function changeGameMode(targetMode) {
+            if(story.length === 0) { alert("请先在上方挑选或制作课本哦！"); return; }
+            currentGameMode = targetMode;
+            
+            document.getElementById('adventureTab').classList.remove('active-mode');
+            document.getElementById('dianduxTab').classList.remove('active-mode');
+            
+            if(targetMode === 'adventure') {
+                document.getElementById('adventureTab').classList.add('active-mode');
+                document.getElementById('adventureMapView').style.display = 'block';
+                document.getElementById('dianduxLayoutView').style.display = 'none';
+                document.getElementById('mainCardView').style.display = 'block';
+                document.getElementById('resetProgressBtn').style.display = 'inline-block';
+                document.getElementById('passBtn').style.display = 'inline-block';
+                document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
+                loadLevel(currentIndex); 
+            } else {
+                document.getElementById('adventureTab').classList.remove('active-mode');
+                document.getElementById('dianduxTab').classList.add('active-mode');
+                document.getElementById('adventureMapView').style.display = 'none';
+                document.getElementById('dianduxLayoutView').style.display = 'grid'; 
+                document.getElementById('mainCardView').style.display = 'none'; 
+                document.getElementById('bossArea').style.display = 'none';
+                document.getElementById('resetProgressBtn').style.display = 'none';
+                document.getElementById('passBtn').style.display = 'none'; 
+                document.getElementById('micBtn').innerText = "🎤 录制当前句发音";
+                
+                renderDianDuSidebarCatalog();
+            }
+        }
+
+        function renderDianDuSidebarCatalog() {
+            const sidebar = document.getElementById('dianduxSidebar'); sidebar.innerHTML = "";
+            structuredBook.forEach((unit, uIdx) => {
+                const uTitle = document.createElement('div'); uTitle.className = "sidebar-title"; uTitle.innerText = "📦 " + unit.title; sidebar.appendChild(uTitle);
+                unit.lessons.forEach((lesson, lIdx) => {
+                    const lDiv = document.createElement('div');
+                    const isSelected = (uIdx === currentDianduxUnitIdx && lIdx === currentDianduxLessonIdx);
+                    lDiv.className = "sidebar-item" + (isSelected ? " active-item" : ""); lDiv.innerText = "📖 " + lesson.title;
+                    lDiv.onclick = () => {
+                        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active-item')); lDiv.classList.add('active-item');
+                        currentDianduxUnitIdx = uIdx; currentDianduxLessonIdx = lIdx;
+                        renderDianDuMainBookSentences(lesson);
+                    };
+                    sidebar.appendChild(lDiv);
+                });
+            });
+            if(structuredBook[currentDianduxUnitIdx] && structuredBook[currentDianduxUnitIdx].lessons[currentDianduxLessonIdx]) {
+                renderDianDuMainBookSentences(structuredBook[currentDianduxUnitIdx].lessons[currentDianduxLessonIdx]);
+            }
+        }
+
+        // 🌟 亮点重构：将英文句子拆分成一个一个独立的“磁吸单字按钮”，并挂载本地合成发音驱动
+        function renderDianDuMainBookSentences(lesson) {
+            const mainBook = document.getElementById('dianduxMainBook'); mainBook.innerHTML = "";
+
+            lesson.sentences.forEach((sentenceObj) => {
+                const lineDiv = document.createElement('div');
+                const isLineActive = (sentenceObj.globalIdx === currentDianduxGlobalLineIdx);
+                lineDiv.className = "diandux-line" + (isLineActive ? " diandux-active-line" : "");
+                lineDiv.id = "diandux-line-" + sentenceObj.globalIdx;
+
+                // 序号标记
+                const numSpan = document.createElement('span');
+                numSpan.className = "diandux-num";
+                numSpan.innerText = (sentenceObj.globalIdx + 1) + ".";
+                lineDiv.appendChild(numSpan);
+
+                // 清洗出纯英文
+                let pureEnglish = sentenceObj.raw.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
+                
+                // 将句子切分成一个一个的独立单词纽扣
+                pureEnglish.split(" ").filter(Boolean).forEach((word) => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = "diandux-word";
+                    wordSpan.innerText = word;
+                    
+                    // 🌟 核心新增：手指轻触单独某个单词，立刻引发本地标准发音机制
+                    wordSpan.onclick = (event) => {
+                        event.stopPropagation(); // 阻止向父级大行冒泡，防止误触发整句朗读
+                        speakSingleWordLocally(word);
+                    };
+                    
+                    lineDiv.appendChild(wordSpan);
+                    // 补一个空格保持正常的英文书写间距
+                    lineDiv.appendChild(document.createTextNode(" "));
+                });
+
+                // 点击除单词外的一行空白区域或序号，触发整句大招开播
+                lineDiv.onclick = async () => {
+                    document.querySelectorAll('.diandux-line').forEach(l => l.classList.remove('diandux-active-line'));
+                    lineDiv.classList.add('diandux-active-line');
+
+                    currentDianduxGlobalLineIdx = sentenceObj.globalIdx;
+                    currentIndex = sentenceObj.globalIdx;
+
+                    const selectName = document.getElementById('courseSelect').value;
+                    document.getElementById('playMyAudioBtn').style.display = 'none';
+                    document.getElementById('playHistoryAudioBtn').style.display = 'none';
+                    
+                    if(selectName) {
+                        const kidSavedBlob = await getAudioFromDB("passed_voices", selectName + "_" + currentIndex);
+                        if(kidSavedBlob) {
+                            historyPassAudioUrl = URL.createObjectURL(kidSavedBlob);
+                            document.getElementById('playHistoryAudioBtn').style.display = 'inline-block';
+                        }
+                    }
+                    document.getElementById('playParentAudioBtn').style.display = audioBuffer ? 'inline-block' : 'none';
+
+                    if (audioBuffer) playParentAudio();
+                    else playMicrosoftAudio();
+                };
+
+                mainBook.appendChild(lineDiv);
+            });
+        }
+
+        // 🌟 核心原子发音引擎：调用 iPad 本地轻量化硬件，一触即发，毫无网络延迟
+        function speakSingleWordLocally(wordStr) {
+            // 清理掉单词两边的标点符号，防止影响发音准确度
+            let cleanWord = wordStr.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").trim();
+            if(!cleanWord) return;
+            
+            console.log(`[单字留声机] 正在本地点读单字: ${cleanWord}`);
+            
+            // 使用浏览器原生的 SpeechSynthesisUtterance 接口
+            const utterance = new SpeechSynthesisUtterance(cleanWord);
+            utterance.lang = 'en-US'; // 设定为标准美式英语
+            utterance.rate = 0.85;    // 语速稍微放慢一点点，方便二年级小朋友听清音节结构
+            
+            window.speechSynthesis.cancel(); // 先中断并清空之前没播完的残存发音队列
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // =================【🎯 课本管理台】=================
         function openFactoryModal() { document.getElementById('factoryModal').style.display = 'flex'; }
         function closeFactoryModal() { document.getElementById('factoryModal').style.display = 'none'; }
 
         function loadCourseDatabase() {
-            const cachedDb = localStorage.getItem('yimo_course_db_v1');
-            if (cachedDb) courseDatabase = JSON.parse(cachedDb);
-            else {
-                courseDatabase = { "示例课程：桃园三结义": "Three brave men met in a peach garden.\nThey promised to be brothers.\nThey vowed to protect their country together." };
-                localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase));
-            }
-            renderCourseDropdown();
-            const lastSelectedCourse = localStorage.getItem('yimo_selected_course_name');
-            if (lastSelectedCourse && courseDatabase[lastSelectedCourse]) {
-                document.getElementById('courseSelect').value = lastSelectedCourse;
-                switchCourse();
-            }
+            const cachedDb = localStorage.getItem('yimo_course_db_v1'); if (cachedDb) courseDatabase = JSON.parse(cachedDb);
+            else { courseDatabase = { "示例课程：桃园三结义": "# 第一单元\n## 第一课时\nThree brave men met in a peach garden.\nThey promised to be brothers.\nThey vowed to protect their country together." }; localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase)); }
+            renderCourseDropdown(); const lastSelectedCourse = localStorage.getItem('yimo_selected_course_name');
+            if (lastSelectedCourse && courseDatabase[lastSelectedCourse]) { document.getElementById('courseSelect').value = lastSelectedCourse; switchCourse(); }
         }
 
         function renderCourseDropdown() {
-            const select = document.getElementById('courseSelect');
-            select.innerHTML = '<option value="">-- 🔍 戳这里挑选你想挑战的课本 --</option>';
-            Object.keys(courseDatabase).forEach(courseName => {
-                const opt = document.createElement('option'); opt.value = courseName; opt.innerText = courseName; select.appendChild(opt);
-            });
+            const select = document.getElementById('courseSelect'); select.innerHTML = '<option value="">-- 🔍 戳这里挑选你想挑战的课本 --</option>';
+            Object.keys(courseDatabase).forEach(courseName => { const opt = document.createElement('option'); opt.value = courseName; opt.innerText = courseName; select.appendChild(opt); });
         }
 
-        // 课本工厂核心逻辑：封包成独立剧本实体并动态保存
         function saveNewBookToDatabase() {
-            const currentText = document.getElementById('textInput').value.trim();
-            if (!currentText) { alert("课本剧本内容不能为空哦！"); return; }
-            const courseName = prompt("请为这本新课本命名（例如：演说关卡一：自我介绍）：");
-            if (!courseName) return;
-
-            courseDatabase[courseName] = currentText;
-            localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase));
-            localStorage.setItem('yimo_selected_course_name', courseName);
-            
-            renderCourseDropdown();
-            document.getElementById('courseSelect').value = courseName;
-            
-            // 初始化全新进度档案
-            clearedLevels = new Set();
-            saveCourseProgressToStorage(courseName);
-
-            document.getElementById('statusMessage').innerText = `🎉 恭喜！新课本《${courseName}》已成功出版，快去左上角选课中心开启挑战吧！`;
-            closeFactoryModal();
-            switchCourse();
+            const currentText = document.getElementById('textInput').value.trim(); if (!currentText) { alert("课本剧本内容不能为空哦！"); return; }
+            const courseName = prompt("请输入新课本的名字："); if (!courseName) return;
+            courseDatabase[courseName] = currentText; localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase)); localStorage.setItem('yimo_selected_course_name', courseName);
+            renderCourseDropdown(); document.getElementById('courseSelect').value = courseName;
+            clearedLevels = new Set(); saveCourseProgressToStorage(courseName);
+            document.getElementById('statusMessage').innerText = "🎉 新课本《" + courseName + "》已上架成功！";
+            closeFactoryModal(); switchCourse();
         }
 
         async function switchCourse() {
-            const select = document.getElementById('courseSelect');
-            const selectedName = select.value; if (!selectedName) return;
-            
-            // 将当前选择同步回管理台
-            document.getElementById('textInput').value = courseDatabase[selectedName];
-            localStorage.setItem('yimo_selected_course_name', selectedName);
-            
-            restoreCourseProgress(selectedName);
-            
-            audioBuffer = null;
+            const select = document.getElementById('courseSelect'); const selectedName = select.value; if (!selectedName) return;
+            const bookContentText = courseDatabase[selectedName];
+            structuredBook = parseBookRawTextStructure(bookContentText);
+            localStorage.setItem('yimo_selected_course_name', selectedName); restoreCourseProgress(selectedName);
+            currentDianduxUnitIdx = 0; currentDianduxLessonIdx = 0; currentDianduxGlobalLineIdx = 0; currentIndex = 0;
+            audioBuffer = null; document.getElementById('audioFile').value = "";
+
             const savedArrayBuffer = await getAudioFromDB("parent_long_buffers", selectedName);
             if (savedArrayBuffer) {
-                document.getElementById('audioStatus').innerText = "📂 检测到本地固化的家长发音，已完成无阻碍分句对齐[cite: 5]。";
-                audioContext.decodeAudioData(savedArrayBuffer.slice(0), (buffer) => {
-                    audioBuffer = buffer;
-                    sliceAudioIntelligently(buffer, courseDatabase[selectedName].split("\n").filter(Boolean).length);
-                });
-            } else {
-                document.getElementById('audioStatus').innerText = "⚪ 本课暂无外部长录音，采用自适应跑马灯[cite: 5]。";
-                generateGameMap();
-            }
+                document.getElementById('audioStatus').innerText = "📂 检测到固化的家长发音，已完成无缝切分。";
+                audioContext.decodeAudioData(savedArrayBuffer.slice(0), (buffer) => { audioBuffer = buffer; sliceAudioIntelligently(buffer, story.length); });
+            } else { document.getElementById('audioStatus').innerText = "⚪ 本课暂无外部长录音，采用自适应跑马灯。"; if(currentGameMode === 'adventure') generateGameMap(); else changeGameMode('diandux'); }
         }
 
-        function restoreCourseProgress(courseName) {
-            const cachedProgress = localStorage.getItem(`yimo_progress_${courseName}`);
-            clearedLevels = cachedProgress ? new Set(JSON.parse(cachedProgress)) : new Set();
-        }
+        function restoreCourseProgress(courseName) { const cachedProgress = localStorage.getItem(`yimo_progress_${courseName}`); clearedLevels = cachedProgress ? new Set(JSON.parse(cachedProgress)) : new Set(); }
+        function saveCourseProgressToStorage(courseName) { if (!courseName) return; localStorage.setItem(`yimo_progress_${courseName}`, JSON.stringify(Array.from(clearedLevels))); }
 
-        function saveCourseProgressToStorage(courseName) {
-            if (!courseName) return;
-            localStorage.setItem(`yimo_progress_${courseName}`, JSON.stringify(Array.from(clearedLevels)));
-        }
-
-        // 🌟 核心升级：重新挑战时，绝不误杀销毁已经切分好的家长录音资源[cite: 5]！
         function resetCurrentCourseProgress() {
-            const select = document.getElementById('courseSelect'); const currentCourseName = select.value;
-            if (!currentCourseName) { alert("请先在选课中心选中一门课本。"); return; }
-            if (confirm(`🚨 确认重新挑战吗？\n文一墨需要重新从第一关开始，他的历史通关录音会被清空，但【家长的音频和剧本依然原封不动保留】[cite: 5]。`)) {
-                clearedLevels = new Set(); 
-                saveCourseProgressToStorage(currentCourseName);
-                
-                // 💡 亮点：只清除孩子的通关音频轨，绝不调用 deleteCourseDataFromDB 摧毁 parent_long_buffers！
+            const select = document.getElementById('courseSelect'); const currentCourseName = select.value; if (!currentCourseName) { alert("请先选择选课中心课本。"); return; }
+            if (confirm("🚨 确认重新挑战吗？将重置冲关进度，但保留家长的原声音频。")) {
+                clearedLevels = new Set(); saveCourseProgressToStorage(currentCourseName);
                 const transaction = dbInstance.transaction(["passed_voices"], "readwrite");
-                const store = transaction.objectStore("passed_voices");
-                store.openCursor().onsuccess = (e) => {
-                    const cursor = e.target.result;
-                    if (cursor) {
-                        if (cursor.key.startsWith(`${currentCourseName}_`)) cursor.delete();
-                        cursor.continue();
-                    }
-                };
-                
-                document.getElementById('badge').style.display = 'none';
-                generateGameMap(); // 刷新重新开始
-                document.getElementById('statusMessage').innerText = `🔄 关卡封印已洗牌！文一墨，开始重新挑战本课本吧！`;
+                transaction.objectStore("passed_voices").openCursor().onsuccess = (e) => { const cursor = e.target.result; if (cursor) { if (cursor.key.startsWith(currentCourseName + "_")) cursor.delete(); cursor.continue(); } };
+                document.getElementById('badge').style.display = 'none'; generateGameMap(); document.getElementById('statusMessage').innerText = "🔄 关卡进度已清空重置！";
             }
         }
 
         function deleteCurrentCourse() {
             const select = document.getElementById('courseSelect'); const selectedName = select.value; if (!selectedName) return;
-            if (confirm(`确定要彻底粉碎并销毁课本 "${selectedName}" 吗？此操作无法撤销。`)) {
-                delete courseDatabase[selectedName]; localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase));
-                deleteCourseDataFromDB(selectedName); localStorage.removeItem(`yimo_progress_${selectedName}`);
-                document.getElementById('textInput').value = ""; clearedLevels = new Set(); audioBuffer = null;
-                renderCourseDropdown(); document.getElementById('levelMap').innerHTML = ""; document.getElementById('starContainer').innerText = "";
-                closeFactoryModal();
-                document.getElementById('statusMessage').innerText = `🗑️ 课本 "${selectedName}" 已从本地完全抹除。`;
+            if (confirm("确定彻底销毁课本 \"" + selectedName + "\" 吗？")) {
+                delete courseDatabase[selectedName]; localStorage.setItem('yimo_course_db_v1', JSON.stringify(courseDatabase)); deleteCourseDataFromDB(selectedName); localStorage.removeItem(`yimo_progress_${selectedName}`); localStorage.removeItem('yimo_selected_course_name');
+                document.getElementById('textInput').value = ""; clearedLevels = new Set(); audioBuffer = null; renderCourseDropdown(); document.getElementById('levelMap').innerHTML = ""; document.getElementById('starContainer').innerText = ""; closeFactoryModal();
             }
         }
 
         function saveTextToCache() { localStorage.setItem('yimo_current_draft', document.getElementById('textInput').value); }
 
-        // =================【🎵 家长声音高精智能捕获与 Web Audio 切片引擎】=================
         function handleAudioUpload(input) {
-            initAudioContext(); const customText = document.getElementById('textInput').value.trim();
-            if(!customText) { alert("请先输入演讲稿（一句一行），再导入音频。"); input.value = ""; return; }
-            story = customText.split("\n").map(l => l.trim()).filter(l => l !== "");
-            const file = input.files[0]; if (!file) return;
-            document.getElementById('audioStatus').innerText = "⚡ 正在智能分析声音呼吸波形并自动切段[cite: 5]...";
-            const select = document.getElementById('courseSelect').value;
-            const reader = new FileReader();
+            initAudioContext(); const customText = document.getElementById('textInput').value.trim(); if(!customText) { alert("请先输入演讲稿，再导入音频。"); input.value = ""; return; }
+            structuredBook = parseBookRawTextStructure(customText); const file = input.files[0]; if (!file) return;
+            document.getElementById('audioStatus').innerText = "⚡ 正在分析波形停顿轴...";
+            const select = document.getElementById('courseSelect').value; const reader = new FileReader();
             reader.onload = function(e) {
-                const rawArrayBuffer = e.target.result;
-                if(select) saveAudioToDB("parent_long_buffers", select, rawArrayBuffer.slice(0));
+                const rawArrayBuffer = e.target.result; if(select) saveAudioToDB("parent_long_buffers", select, rawArrayBuffer.slice(0));
                 audioContext.decodeAudioData(rawArrayBuffer, function(buffer) { audioBuffer = buffer; sliceAudioIntelligently(buffer, story.length); });
             };
             reader.readAsArrayBuffer(file);
@@ -422,15 +560,13 @@
                 let wordCounts = story.map(s => s.split(" ").filter(Boolean).length); let totalWords = wordCounts.reduce((a, b) => a + b, 0) || 1; let currentAccumulatedTime = 0;
                 for (let i = 0; i < numCuts; i++) { currentAccumulatedTime += (buffer.duration * (wordCounts[i] / totalWords)); sentenceTimestamps.push(parseFloat(currentAccumulatedTime.toFixed(3))); }
             }
-            sentenceTimestamps.push(buffer.duration); generateGameMap();
+            sentenceTimestamps.push(buffer.duration);
+            if(currentGameMode === 'adventure') generateGameMap(); else changeGameMode('diandux');
         }
 
-        // =================【🎮 游戏大冒险游玩主程序】=================
         function generateGameMap() {
-            const customText = document.getElementById('textInput').value.trim(); if(!customText) return;
-            story = customText.split("\n").map(l => l.trim()).filter(l => l !== ""); nodesData = []; let comboTracker = [];
+            nodesData = []; let comboTracker = [];
             story.forEach((sentence, idx) => {
-                // 亮点：智能剔除中文及中文括号括号内容，保证朗读时和高亮对齐毫无错乱
                 let pureEnglish = sentence.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
                 nodesData.push({ type: 'normal', scriptIdx: idx, label: idx + 1, en: pureEnglish }); comboTracker.push({ scriptIdx: idx, mapIdx: nodesData.length - 1 });
                 if (comboTracker.length === 3 || idx === story.length - 1) { nodesData.push({ type: 'boss', targetNodesInfo: [...comboTracker], label: 'BOSS' }); comboTracker = []; }
@@ -439,8 +575,8 @@
             const mapContainer = document.getElementById('levelMap'); mapContainer.innerHTML = ""; let autoTargetIdx = 0; let foundTarget = false;
             nodesData.forEach((node, idx) => {
                 const isCleared = clearedLevels.has(idx); const div = document.createElement('div');
-                div.className = `level-node ${node.type === 'boss' ? 'boss-node' : ''} ${isCleared ? 'cleared' : ''}`;
-                div.id = `node-${idx}`; div.innerText = node.label; div.onclick = () => loadLevel(idx); mapContainer.appendChild(div);
+                div.className = "level-node " + (node.type === 'boss' ? 'boss-node ' : '') + (isCleared ? 'cleared' : '');
+                div.id = "node-" + idx; div.innerText = node.label; div.onclick = () => loadLevel(idx); mapContainer.appendChild(div);
                 if (!isCleared && !foundTarget) { autoTargetIdx = idx; foundTarget = true; }
             });
             if (!foundTarget && nodesData.length > 0) autoTargetIdx = nodesData.length - 1;
@@ -449,67 +585,64 @@
             updateStars(); loadLevel(autoTargetIdx);
         }
 
-        function renderSubtitle(node) {
-            const container = document.getElementById('engText'); container.innerHTML = ""; clearInterval(highlightTimer); let wordTrackingArray = []; if (nodesData.length === 0) return wordTrackingArray;
-            if (node.type === 'normal') {
-                const div = document.createElement('div'); div.className = "word-container";
-                node.en.split(" ").filter(Boolean).forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = `span-0-${wIdx}`; span.innerText = word + " "; div.appendChild(span); wordTrackingArray.push(`span-0-${wIdx}`); }); container.appendChild(div);
-            } else {
-                node.targetNodesInfo.forEach((info, order) => {
-                    const blockDiv = document.createElement('div'); blockDiv.className = `boss-sentence-block b-block-${order}`; if(order === 0) blockDiv.classList.add('active-sentence');
-                    const englishRow = document.createElement('div'); englishRow.className = 'boss-english-row';
-                    nodesData[info.mapIdx].en.split(" ").filter(Boolean).forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = `span-${order}-${wIdx}`; span.innerText = word + " "; englishRow.appendChild(span); wordTrackingArray.push({ id: `span-${order}-${wIdx}`, block: order }); });
-                    blockDiv.appendChild(englishRow); container.appendChild(blockDiv);
-                });
-            }
-            return wordTrackingArray;
-        }
-
+        // =================【🎵 播放调度机制】=================
         async function playMicrosoftAudio() {
             if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
             activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); clearInterval(highlightTimer);
-            const node = nodesData[currentIndex]; if (!node) return;
-            let textToSpeak = node.type === 'normal' ? node.en : node.targetNodesInfo.map(info => nodesData[info.mapIdx].en).join(". ");
+            
+            let textToSpeak = story[currentIndex].replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
+            if (currentGameMode === 'adventure') {
+                const node = nodesData[currentIndex]; if (!node) return;
+                textToSpeak = node.type === 'normal' ? node.en : node.targetNodesInfo.map(info => nodesData[info.mapIdx].en).join(". ");
+            }
+
             const apiEndpoint = document.getElementById('nasIpInput').value.trim(); const voiceType = document.getElementById('voiceSelect').value;
             let requestUrl = apiEndpoint.endsWith('/api/tts') ? apiEndpoint : apiEndpoint.replace(/\/$/, '') + '/api/tts';
             try {
                 const response = await fetch(requestUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: textToSpeak, voice_type: voiceType, speed: currentPlaybackRate }) });
                 const blob = await response.blob(); const audioUrl = URL.createObjectURL(blob);
                 currentAiAudio = new Audio(audioUrl); currentAiAudio.play();
-                const wordIdList = renderSubtitle(node); let timePerWord = (380 / currentPlaybackRate); let currentWordPointer = 0;
+                
+                const wordIdList = renderSubtitle(nodesData[currentIndex]); let timePerWord = (380 / currentPlaybackRate); let currentWordPointer = 0;
                 highlightTimer = setInterval(() => {
                     document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight')); let currentItem = wordIdList[currentWordPointer];
                     if (currentItem) {
                         let targetId = typeof currentItem === 'string' ? currentItem : currentItem.id;
-                        if(typeof currentItem === 'object') { document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence')); document.querySelector(`.b-block-${currentItem.block}`).classList.add('active-sentence'); }
+                        if(currentGameMode === 'adventure' && typeof currentItem === 'object') { document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence')); document.querySelector(".b-block-" + currentItem.block).classList.add('active-sentence'); }
                         const currentSpan = document.getElementById(targetId); if (currentSpan) currentSpan.classList.add('highlight'); currentWordPointer++;
                     } else clearInterval(highlightTimer);
                 }, timePerWord);
-            } catch (err) { document.getElementById('statusMessage').innerText = "❌ 调取 AI 失败，请检查 5034 容器状态。"; }
+            } catch (err) { document.getElementById('statusMessage').innerText = "❌ 调取 AI 失败，请检查 5034 后端。"; }
         }
 
         function playParentAudio() {
             initAudioContext(); if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
             activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); activeSourcesList = []; clearInterval(highlightTimer);
-            const node = nodesData[currentIndex]; if (!audioBuffer) return;
+            if (!audioBuffer) return;
+
             let playQueue = []; let totalDuration = 0;
-            if (node.type === 'normal') {
-                let start = sentenceTimestamps[node.scriptIdx]; let end = sentenceTimestamps[node.scriptIdx + 1]; playQueue.push({ start, duration: end - start, delay: 0 }); totalDuration = (end - start) / currentPlaybackRate;
+            if (currentGameMode === 'diandux' || nodesData[currentIndex].type === 'normal') {
+                let start = sentenceTimestamps[currentIndex]; let end = sentenceTimestamps[currentIndex + 1];
+                playQueue.push({ start, duration: end - start, delay: 0 }); totalDuration = (end - start) / currentPlaybackRate;
             } else {
-                let currentDelay = 0; node.targetNodesInfo.forEach(info => {
-                    let start = sentenceTimestamps[info.scriptIdx]; let end = sentenceTimestamps[info.scriptIdx + 1]; playQueue.push({ start, duration: end - start, delay: currentDelay }); currentDelay += ((end - start) / currentPlaybackRate);
+                const node = nodesData[currentIndex]; let currentDelay = 0; 
+                node.targetNodesInfo.forEach(info => {
+                    let start = sentenceTimestamps[info.scriptIdx]; let end = sentenceTimestamps[info.scriptIdx + 1];
+                    playQueue.push({ start, duration: end - start, delay: currentDelay }); currentDelay += ((end - start) / currentPlaybackRate);
                 }); totalDuration = currentDelay;
             }
-            const wordIdList = renderSubtitle(node); let timePerWord = (totalDuration * 1000) / wordIdList.length; let currentWordPointer = 0;
+
+            const wordIdList = renderSubtitle(nodesData[currentIndex]); let timePerWord = (totalDuration * 1000) / wordIdList.length; let currentWordPointer = 0;
             highlightTimer = setInterval(() => {
                 document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight')); let currentItem = wordIdList[currentWordPointer];
                 if (currentItem) {
                     let targetId = typeof currentItem === 'string' ? currentItem : currentItem.id;
-                    if(typeof currentItem === 'object') { document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence')); document.querySelector(`.b-block-${currentItem.block}`).classList.add('active-sentence'); }
+                    if(currentGameMode === 'adventure' && typeof currentItem === 'object') { document.querySelectorAll('.boss-sentence-block').forEach(b => b.classList.remove('active-sentence')); document.querySelector(".b-block-" + currentItem.block).classList.add('active-sentence'); }
                     const currentSpan = document.getElementById(targetId); if (currentSpan) currentSpan.classList.add('highlight'); currentWordPointer++;
                 } else clearInterval(highlightTimer);
             }, timePerWord);
-            playQueue.forEach(item => { setTimeout(() => { if (nodesData[currentIndex] !== node) return; let source = audioContext.createBufferSource(); source.buffer = audioBuffer; source.playbackRate.value = currentPlaybackRate; source.connect(audioContext.destination); source.start(0, item.start, item.duration); activeSourcesList.push(source); }, item.delay * 1000); });
+
+            playQueue.forEach(item => { setTimeout(() => { let source = audioContext.createBufferSource(); source.buffer = audioBuffer; source.playbackRate.value = currentPlaybackRate; source.connect(audioContext.destination); source.start(0, item.start, item.duration); activeSourcesList.push(source); }, item.delay * 1000); });
         }
 
         function playKidsAudio() { activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); if (kidsAudioBlobUrl) { kidsAudioPlayer.src = kidsAudioBlobUrl; kidsAudioPlayer.play(); } }
@@ -519,32 +652,33 @@
             if (nodesData.length === 0) return; if (idx > 0 && !clearedLevels.has(idx - 1) && idx !== currentIndex) { document.getElementById('statusMessage').innerText = "🔒 前方的领地还在被怪兽占领哦！"; return; }
             if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
             activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
+
             document.getElementById('playMyAudioBtn').style.display = 'none'; document.getElementById('playHistoryAudioBtn').style.display = 'none';
             document.getElementById('playParentAudioBtn').style.display = audioBuffer ? 'inline-block' : 'none'; 
             kidsAudioBlobUrl = null; currentPassAudioBlob = null; historyPassAudioUrl = null; clearInterval(highlightTimer);
             currentIndex = idx; const node = nodesData[idx]; renderSubtitle(node);
             const bossArea = document.getElementById('bossArea'); if (node.type === 'boss') { bossArea.style.display = 'block'; document.getElementById('bossHp').style.width = clearedLevels.has(idx) ? '0%' : '100%'; } else { bossArea.style.display = 'none'; }
             document.querySelectorAll('.level-node').forEach((n, nIdx) => { n.classList.remove('active'); if (nIdx === currentIndex) n.classList.add('active'); });
-            const select = document.getElementById('courseSelect'); if (select.value) { const savedBlob = await getAudioFromDB("passed_voices", `${select.value}_${idx}`); if (savedBlob) { historyPassAudioUrl = URL.createObjectURL(savedBlob); document.getElementById('playHistoryAudioBtn').style.display = 'inline-block'; } }
+            const select = document.getElementById('courseSelect'); if (select.value) { const savedBlob = await getAudioFromDB("passed_voices", select.value + "_" + idx); if (savedBlob) { historyPassAudioUrl = URL.createObjectURL(savedBlob); document.getElementById('playHistoryAudioBtn').style.display = 'inline-block'; } }
             updateStars();
         }
 
         function forcePass() {
             clearedLevels.add(currentIndex); const select = document.getElementById('courseSelect');
-            if (select.value) { saveCourseProgressToStorage(select.value); if (currentPassAudioBlob) saveAudioToDB("passed_voices", `${select.value}_${currentIndex}`, currentPassAudioBlob); }
+            if (select.value) { saveCourseProgressToStorage(select.value); if (currentPassAudioBlob) saveAudioToDB("passed_voices", select.value + "_" + currentIndex, currentPassAudioBlob); }
             const node = nodesData[currentIndex]; if (node.type === 'boss') { document.getElementById('bossHp').style.width = '0%'; playExplodeSound(); } else { playCorrectSound(); }
-            document.getElementById(`node-${currentIndex}`).classList.add('cleared'); setTimeout(() => { if (currentIndex < nodesData.length - 1) loadLevel(currentIndex + 1); else updateStars(); }, 1200);
+            document.getElementById("node-" + currentIndex).classList.add('cleared'); setTimeout(() => { if (currentIndex < nodesData.length - 1) loadLevel(currentIndex + 1); else updateStars(); }, 1200);
         }
 
-        // =================【🎤 本地微电压声音雷达自动打分引擎（不闪退、8秒高宽容）】=================
+        // =================【🎤 本地微电压声音雷达自动断句评分引擎】=================
         async function toggleSmartAutoRecording() {
             initAudioContext(); if (currentAiAudio) currentAiAudio.pause(); activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
             const micBtn = document.getElementById('micBtn');
             if (isListening) { stopSmartRecordingAndScore(); } else {
-                try { audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (err) { alert("麦克风权限受阻。"); return; }
+                try { audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (err) { alert("麦克风不可用。"); return; }
                 isListening = true; kidsAudioChunks = []; currentPassAudioBlob = null; document.getElementById('playMyAudioBtn').style.display = 'none'; document.getElementById('scoreDisplay').innerText = "";
                 micBtn.className = "recording"; micBtn.innerText = "🛑 停止并计算大招";
-                document.getElementById('statusMessage').innerText = "🔴 声音雷达工作中！慢慢读，中途长换气和卡壳完全没问题，读完保持安静 8 秒即可全自动解锁！";
+                document.getElementById('statusMessage').innerText = "🔴 声音雷达工作中！允许 8 秒静音断续。读完后保持安静即可自动结算录音！";
 
                 kidsMediaRecorder = new MediaRecorder(audioStream);
                 kidsMediaRecorder.ondataavailable = (e) => { kidsAudioChunks.push(e.data); };
@@ -568,15 +702,15 @@
                 };
                 sourceNode.connect(meterProcessor); meterProcessor.connect(audioContext.destination);
 
-                const node = nodesData[currentIndex]; let durationEstimate = node.type === 'normal' ? 6 : 15; let wordsCount = document.querySelectorAll('.word-span').length;
-                let step = (durationEstimate * 1000) / wordsCount; let count = 0; clearInterval(highlightTimer);
+                let durationEstimate = currentGameMode === 'diandux' ? 5 : (nodesData[currentIndex].type === 'normal' ? 6 : 15); let wordsCount = document.querySelectorAll('.word-span').length;
+                let step = (durationEstimate * 1000) / (wordsCount || 1); let count = 0; clearInterval(highlightTimer);
                 highlightTimer = setInterval(() => { document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight')); let sp = document.querySelectorAll('.word-span')[count]; if(sp) { sp.classList.add('highlight'); count++; } else clearInterval(highlightTimer); }, step);
             }
         }
 
         function stopSmartRecordingAndScore() {
             if (!isListening) return; isListening = false;
-            const micBtn = document.getElementById('micBtn'); micBtn.className = ""; micBtn.innerText = "🎤 我来挑战打怪";
+            const micBtn = document.getElementById('micBtn'); micBtn.className = ""; micBtn.innerText = currentGameMode === 'diandux' ? "🎤 录制当前句发音" : "🎤 我来挑战打怪";
             if (meterProcessor) { meterProcessor.disconnect(); meterProcessor = null; }
             if (audioStream) { audioStream.getTracks().forEach(track => track.stop()); audioStream = null; }
             if (kidsMediaRecorder && kidsMediaRecorder.state === "recording") { kidsMediaRecorder.stop(); }
@@ -584,15 +718,12 @@
         }
 
         function executeLocalSmartScoring() {
-            const node = nodesData[currentIndex]; let targetText = node.type === 'normal' ? node.en : node.targetNodesInfo.map(info => nodesData[info.mapIdx].en).join(" ");
-            const targetWordsCount = targetText.split(" ").filter(Boolean).length;
-            let localBaseScore = 85 + Math.floor(Math.random() * 10);
+            let localBaseScore = 86 + Math.floor(Math.random() * 10);
             let finalScore = Math.min(100, Math.max(65, localBaseScore));
             document.getElementById('scoreDisplay').innerText = finalScore + "分";
-            if (finalScore >= 75) {
-                document.getElementById('statusMessage').innerHTML = `🌟 斩获了 ${finalScore} 分！<br><span style='font-size:14px; color:#2ecc71; font-weight:bold;'>录音全长无损同步历史留声机！</span>`;
-                forcePass();
-            } else { document.getElementById('statusMessage').innerHTML = `👍 声音真响亮！拿到了 ${finalScore} 分，听听正确的示范再来一次！`; }
+            if (currentGameMode === 'diandux') { document.getElementById('statusMessage').innerHTML = "🎯 点读句录音成功！已同步暂存。"; return; }
+            if (finalScore >= 75) { document.getElementById('statusMessage').innerHTML = "🌟 斩获了 " + finalScore + " 分！"; forcePass(); } 
+            else { document.getElementById('statusMessage').innerHTML = "👍 声音真响亮！拿到了 " + finalScore + " 分，再来一次！"; }
         }
 
         function playCorrectSound() { let osc = audioContext.createOscillator(); let gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.frequency.setValueAtTime(523.25, audioContext.currentTime); osc.start(); osc.stop(audioContext.currentTime + 0.15); }
