@@ -90,7 +90,6 @@
         .card { background: white; border-radius: 24px; padding: 35px 25px; box-shadow: 0 10px 30px rgba(211, 47, 47, 0.06); border: 2px solid #ffe0e0; margin-bottom: 15px; }
         .word-container { font-size: 26px; font-weight: bold; color: #2c3e50; line-height: 1.6; margin-bottom: 15px; min-height: 80px; text-align: left; }
         
-        /* NCE 布局 */
         .diandux-layout { display: none; grid-template-columns: 250px 1fr; gap: 15px; text-align: left; margin-bottom: 15px; }
         .diandux-sidebar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.02); border: 2px solid #e3ecef; max-height: 500px; overflow-y: auto; }
         .sidebar-title { font-weight: bold; font-size: 14px; color: #7f8c8d; margin: 10px 0 5px 0; text-transform: uppercase; }
@@ -100,26 +99,29 @@
         
         .diandux-main-book { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.02); border: 2px solid #e3ecef; max-height: 500px; overflow-y: auto; }
         
-        /* 点读大行与磁吸单词样式 */
         .diandux-line {
-            padding: 12px 14px; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
-            transition: all 0.15s; font-size: 23px; font-weight: bold; color: #2c3e50; line-height: 1.6;
-            display: flex; flex-wrap: wrap; align-items: center;
+            padding: 10px 14px; border-radius: 10px; margin-bottom: 8px;
+            font-size: 23px; font-weight: bold; color: #2c3e50; line-height: 1.6;
+            display: flex; flex-wrap: wrap; align-items: center; cursor: pointer;
+            transition: all 0.15s;
         }
-        .diandux-line:hover { background: rgba(9, 132, 227, 0.03); }
+        .diandux-line:hover { background: rgba(9, 132, 227, 0.04); }
         .diandux-line.diandux-active-line {
-            background: rgba(9, 132, 227, 0.07) !important; color: var(--diandux-color);
-            box-shadow: inset 4px 0 0 var(--diandux-color); padding-left: 18px;
+            background: rgba(9, 132, 227, 0.08) !important; color: var(--diandux-color);
+            box-shadow: inset 4px 0 0 var(--diandux-color); padding-left: 16px;
         }
-        .diandux-num { margin-right: 10px; color: #95a5a6; min-width: 25px; display: inline-block; }
+        .diandux-num { margin-right: 8px; color: #95a5a6; min-width: 25px; display: inline-block; pointer-events: none; }
         
-        /* 🌟 亮点：可单独被戳点击的微型单词纽扣样式 */
-        .diandux-word {
-            display: inline-block; padding: 0 4px; margin: 2px 2px; border-radius: 6px;
-            transition: all 0.1s; cursor: pointer;
+        .play-sentence-btn {
+            background: var(--diandux-color); color: white; padding: 4px 12px; 
+            border-radius: 12px; font-size: 14px; margin-right: 12px; cursor: pointer;
+            display: inline-block; transition: all 0.15s; border: none; font-weight: bold;
         }
-        .diandux-word:hover { background: rgba(9, 132, 227, 0.15); color: #0984e3; transform: scale(1.08); }
-        .diandux-word:active { background: #0984e3; color: white; }
+        .play-sentence-btn:hover { background: #006bde; transform: scale(1.05); }
+
+        .diandux-word { display: inline-block; padding: 0 4px; margin: 2px 1px; border-radius: 6px; transition: all 0.1s; cursor: pointer; }
+        .diandux-word:hover { background: rgba(9, 132, 227, 0.15); color: #0984e3; transform: scale(1.05); }
+        .diandux-word.active-word-flash { background: #f1c40f !important; color: black !important; }
 
         .boss-sentence-block { margin-bottom: 15px; padding: 12px 15px; border-radius: 12px; border-left: 5px solid #dfe6e9; text-align: left; background: #fafafa; }
         .boss-sentence-block.active-sentence { border-left-color: var(--boss-color); background: rgba(155, 89, 182, 0.04); }
@@ -136,8 +138,11 @@
         #passBtn { background-color: var(--success-color); }
         #playMyAudioBtn { background-color: #9b59b6; }
         #playHistoryAudioBtn { background-color: #16a085; }
-        #playParentAudioBtn { background-color: var(--parent-color); } 
         
+        /* 🌟 亮点优化：统一后的单轨朗诵控制纽扣样式 */
+        #ttsBtn { background-color: var(--primary-color); }
+        #ttsBtn.parent-active-style { background-color: var(--parent-color) !important; }
+
         .top-btn { padding: 10px 16px; font-size: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; border: none; color: white;}
         .factory-btn { background-color: var(--admin-color); }
         .reset-btn { background-color: #f39c12; }
@@ -151,7 +156,6 @@
 
     <h1>🌸 文一墨的纯英演说大冒险 🌸</h1>
     
-    <!-- 顶部控制中心 -->
     <div class="game-top-bar">
         <select id="courseSelect" class="course-selector" onchange="switchCourse()">
             <option value="">-- 🔍 戳这里挑选你想挑战的课本 --</option>
@@ -163,13 +167,11 @@
         </div>
     </div>
 
-    <!-- 双模式切换视窗选项卡 -->
     <div class="mode-switch-container">
         <div id="adventureTab" class="mode-tab active-mode adventure-tab" onclick="changeGameMode('adventure')">🚀 冒险大冲关模式</div>
         <div id="dianduxTab" class="mode-tab diandux-tab" onclick="changeGameMode('diandux')">🎯 NCE 随心点读模式</div>
     </div>
 
-    <!-- 🛠️ 课本制作加工厂（独立弹窗层） -->
     <div id="factoryModal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-btn" onclick="closeFactoryModal()">❌ 关闭管理台</button>
@@ -199,35 +201,29 @@
         </div>
     </div>
 
-    <!-- 👹 BOSS 战场 -->
     <div class="boss-battlefield" id="bossArea">
         <div style="font-weight: bold; font-size: 18px; color: #f1c40f;" id="bossName">👹 遇到大 BOSS！需要连击一口气把前面 3 句话一并背出输出大招！</div>
         <div class="hp-bar-bg"><div class="hp-bar-fill" id="bossHp"></div></div>
     </div>
 
-    <!-- 🗺️ 冒险地图视窗（冲关专用） -->
     <div id="adventureMapView">
         <div class="map-container" id="levelMap"></div>
         <div class="star-reward" id="starContainer"></div>
     </div>
 
-    <!-- 🎯 NCE 单元/课时/单句 联动智能点读视窗 -->
     <div id="dianduxLayoutView" class="diandux-layout">
         <div class="diandux-sidebar" id="dianduxSidebar"></div>
         <div class="diandux-main-book" id="dianduxMainBook"></div>
     </div>
 
-    <!-- 📖 主控制看板面层 -->
     <div class="card" id="mainCardView">
         <div id="badge" style="display:none; font-size:50px;">👑 演说大冠军勋章 👑</div>
         <div class="word-container" id="engText">请选择课本开启大冒险！</div>
         <div class="score-box" id="scoreDisplay"></div>
     </div>
 
-    <!-- 游戏核心操纵按钮 -->
     <div class="controls">
-        <button id="ttsBtn" onclick="playMicrosoftAudio()" disabled>🔊 听 AI 外教读</button>
-        <button id="playParentAudioBtn" onclick="playParentAudio()" style="display: none;">🔊 听家长读</button>
+        <button id="ttsBtn" onclick="smartAdaptivePlaybackRouter()" disabled>🔊 听 AI 外教读</button>
         <button id="playMyAudioBtn" onclick="playKidsAudio()" style="display: none;">🎧 听这次录音</button>
         <button id="playHistoryAudioBtn" onclick="playHistoryPassAudio()" style="display: none;">🎧 听历史通关录音</button>
         
@@ -240,13 +236,20 @@
     <script>
         let audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
-        let story = []; let structuredBook = []; let nodesData = []; let currentIndex = 0; let clearedLevels = new Set();
+        let story = []; let structuredBook = []; let nodesData = []; 
+        let currentIndex = 0;          
+        let currentDianduxLineIdx = 0; 
+        
+        let clearedLevels = new Set();
         let isListening = false; let currentPlaybackRate = 1.0; let highlightTimer = null; let currentAiAudio = null;
         let currentGameMode = 'adventure'; 
 
+        // 🌟 核心防抖安全时间锁
+        let lastClickTimeLock = 0; 
+
         let audioBuffer = null; let sentenceTimestamps = []; let activeSourcesList = [];
         
-        let currentDianduxUnitIdx = 0; let currentDianduxLessonIdx = 0; let currentDianduxGlobalLineIdx = 0;
+        let currentDianduxUnitIdx = 0; let currentDianduxLessonIdx = 0;
 
         let kidsMediaRecorder = null; let kidsAudioChunks = [];
         let kidsAudioBlobUrl = null; let currentPassAudioBlob = null; let historyPassAudioUrl = null;    
@@ -259,6 +262,16 @@
         let courseDatabase = {}; let dbInstance = null; 
 
         function initAudioContext() { if (audioContext.state === 'suspended') audioContext.resume(); }
+
+        // 🌟 核心：无条件瞬杀清理当前所有的残存发音线程，防止重叠
+        function forceKillAllBackgroundVoices() {
+            if (currentAiAudio) { try { currentAiAudio.pause(); } catch(e){} }
+            if (kidsAudioPlayer && !kidsAudioPlayer.paused) { try { kidsAudioPlayer.pause(); } catch(e){} }
+            activeSourcesList.forEach(source => { try { source.stop(); } catch(e){} });
+            activeSourcesList = [];
+            clearInterval(highlightTimer);
+            document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight'));
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const cachedNasIp = localStorage.getItem('yimo_nas_ip');
@@ -334,7 +347,7 @@
             return units;
         }
 
-        // =================【🎯 游戏核心玩法模式中心切换】=================
+        // =================【🎯 游戏核心玩法模式解耦调度中心】=================
         function changeGameMode(targetMode) {
             if(story.length === 0) { alert("请先在上方挑选或制作课本哦！"); return; }
             currentGameMode = targetMode;
@@ -350,9 +363,9 @@
                 document.getElementById('resetProgressBtn').style.display = 'inline-block';
                 document.getElementById('passBtn').style.display = 'inline-block';
                 document.getElementById('micBtn').innerText = "🎤 我来挑战打怪";
-                loadLevel(currentIndex); 
+                
+                generateGameMap(); 
             } else {
-                document.getElementById('adventureTab').classList.remove('active-mode');
                 document.getElementById('dianduxTab').classList.add('active-mode');
                 document.getElementById('adventureMapView').style.display = 'none';
                 document.getElementById('dianduxLayoutView').style.display = 'grid'; 
@@ -387,89 +400,104 @@
             }
         }
 
-        // 🌟 亮点重构：将英文句子拆分成一个一个独立的“磁吸单字按钮”，并挂载本地合成发音驱动
         function renderDianDuMainBookSentences(lesson) {
             const mainBook = document.getElementById('dianduxMainBook'); mainBook.innerHTML = "";
 
             lesson.sentences.forEach((sentenceObj) => {
                 const lineDiv = document.createElement('div');
-                const isLineActive = (sentenceObj.globalIdx === currentDianduxGlobalLineIdx);
+                const isLineActive = (sentenceObj.globalIdx === currentDianduxLineIdx);
                 lineDiv.className = "diandux-line" + (isLineActive ? " diandux-active-line" : "");
                 lineDiv.id = "diandux-line-" + sentenceObj.globalIdx;
 
-                // 序号标记
-                const numSpan = document.createElement('span');
-                numSpan.className = "diandux-num";
-                numSpan.innerText = (sentenceObj.globalIdx + 1) + ".";
-                lineDiv.appendChild(numSpan);
+                // 🌟 核心重构：点读大行空白交互，完美适配防抖安全锁与家长音默认最高优先权
+                async function triggerLineSpeechAction() {
+                    const now = Date.now();
+                    if (now - lastClickTimeLock < 380) return; // 🌟 物理防抖：380毫秒内连续猛戳只响应一次
+                    lastClickTimeLock = now;
 
-                // 清洗出纯英文
-                let pureEnglish = sentenceObj.raw.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
-                
-                // 将句子切分成一个一个的独立单词纽扣
-                pureEnglish.split(" ").filter(Boolean).forEach((word) => {
-                    const wordSpan = document.createElement('span');
-                    wordSpan.className = "diandux-word";
-                    wordSpan.innerText = word;
-                    
-                    // 🌟 核心新增：手指轻触单独某个单词，立刻引发本地标准发音机制
-                    wordSpan.onclick = (event) => {
-                        event.stopPropagation(); // 阻止向父级大行冒泡，防止误触发整句朗读
-                        speakSingleWordLocally(word);
-                    };
-                    
-                    lineDiv.appendChild(wordSpan);
-                    // 补一个空格保持正常的英文书写间距
-                    lineDiv.appendChild(document.createTextNode(" "));
-                });
-
-                // 点击除单词外的一行空白区域或序号，触发整句大招开播
-                lineDiv.onclick = async () => {
                     document.querySelectorAll('.diandux-line').forEach(l => l.classList.remove('diandux-active-line'));
                     lineDiv.classList.add('diandux-active-line');
 
-                    currentDianduxGlobalLineIdx = sentenceObj.globalIdx;
-                    currentIndex = sentenceObj.globalIdx;
+                    currentDianduxLineIdx = sentenceObj.globalIdx;
 
                     const selectName = document.getElementById('courseSelect').value;
                     document.getElementById('playMyAudioBtn').style.display = 'none';
                     document.getElementById('playHistoryAudioBtn').style.display = 'none';
-                    
                     if(selectName) {
-                        const kidSavedBlob = await getAudioFromDB("passed_voices", selectName + "_" + currentIndex);
+                        const kidSavedBlob = await getAudioFromDB("passed_voices", selectName + "_" + currentDianduxLineIdx);
                         if(kidSavedBlob) {
                             historyPassAudioUrl = URL.createObjectURL(kidSavedBlob);
                             document.getElementById('playHistoryAudioBtn').style.display = 'inline-block';
                         }
                     }
-                    document.getElementById('playParentAudioBtn').style.display = audioBuffer ? 'inline-block' : 'none';
 
-                    if (audioBuffer) playParentAudio();
-                    else playMicrosoftAudio();
+                    // 🌟 亮点：优先判断是否有家长切片，有则无条件播放家长领读，无则调用微软外教AI
+                    if (audioBuffer) {
+                        playParentAudio();
+                    } else {
+                        playMicrosoftAudio();
+                    }
+                }
+
+                // ▶️ 听整句按钮
+                const playBtn = document.createElement('button');
+                playBtn.className = "play-sentence-btn";
+                playBtn.innerText = "▶️ 听整句";
+                playBtn.onclick = (event) => {
+                    event.stopPropagation(); 
+                    triggerLineSpeechAction();
+                };
+                lineDiv.appendChild(playBtn);
+
+                // 序号
+                const numSpan = document.createElement('span');
+                numSpan.className = "diandux-num";
+                numSpan.innerText = (sentenceObj.globalIdx + 1) + ".";
+                lineDiv.appendChild(numSpan);
+
+                // 单字磁吸
+                let pureEnglish = sentenceObj.raw.replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
+                pureEnglish.split(" ").filter(Boolean).forEach((word) => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = "diandux-word";
+                    wordSpan.innerText = word;
+                    
+                    wordSpan.onclick = (event) => {
+                        event.stopPropagation(); 
+                        const now = Date.now();
+                        if (now - lastClickTimeLock < 200) return; // 单字高频防抖
+                        lastClickTimeLock = now;
+
+                        wordSpan.classList.add('active-word-flash');
+                        setTimeout(() => wordSpan.classList.remove('active-word-flash'), 300);
+                        speakSingleWordLocally(word);
+                    };
+                    
+                    lineDiv.appendChild(wordSpan);
+                    lineDiv.appendChild(document.createTextNode(" "));
+                });
+
+                // 🌟 点句子空白处直接等同于点读听整句
+                lineDiv.onclick = () => {
+                    triggerLineSpeechAction();
                 };
 
                 mainBook.appendChild(lineDiv);
             });
         }
 
-        // 🌟 核心原子发音引擎：调用 iPad 本地轻量化硬件，一触即发，毫无网络延迟
         function speakSingleWordLocally(wordStr) {
-            // 清理掉单词两边的标点符号，防止影响发音准确度
             let cleanWord = wordStr.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?'"]/g,"").trim();
             if(!cleanWord) return;
-            
-            console.log(`[单字留声机] 正在本地点读单字: ${cleanWord}`);
-            
-            // 使用浏览器原生的 SpeechSynthesisUtterance 接口
+            forceKillAllBackgroundVoices(); // 强杀其他声音，防止打架
             const utterance = new SpeechSynthesisUtterance(cleanWord);
-            utterance.lang = 'en-US'; // 设定为标准美式英语
-            utterance.rate = 0.85;    // 语速稍微放慢一点点，方便二年级小朋友听清音节结构
-            
-            window.speechSynthesis.cancel(); // 先中断并清空之前没播完的残存发音队列
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85; 
+            window.speechSynthesis.cancel();
             window.speechSynthesis.speak(utterance);
         }
 
-        // =================【🎯 课本管理台】=================
+        // =================【🎯 课本管理台模块】=================
         function openFactoryModal() { document.getElementById('factoryModal').style.display = 'flex'; }
         function closeFactoryModal() { document.getElementById('factoryModal').style.display = 'none'; }
 
@@ -500,14 +528,32 @@
             const bookContentText = courseDatabase[selectedName];
             structuredBook = parseBookRawTextStructure(bookContentText);
             localStorage.setItem('yimo_selected_course_name', selectedName); restoreCourseProgress(selectedName);
-            currentDianduxUnitIdx = 0; currentDianduxLessonIdx = 0; currentDianduxGlobalLineIdx = 0; currentIndex = 0;
+            
+            currentDianduxUnitIdx = 0; currentDianduxLessonIdx = 0; currentDianduxLineIdx = 0; currentIndex = 0;
             audioBuffer = null; document.getElementById('audioFile').value = "";
 
             const savedArrayBuffer = await getAudioFromDB("parent_long_buffers", selectedName);
             if (savedArrayBuffer) {
-                document.getElementById('audioStatus').innerText = "📂 检测到固化的家长发音，已完成无缝切分。";
-                audioContext.decodeAudioData(savedArrayBuffer.slice(0), (buffer) => { audioBuffer = buffer; sliceAudioIntelligently(buffer, story.length); });
-            } else { document.getElementById('audioStatus').innerText = "⚪ 本课暂无外部长录音，采用自适应跑马灯。"; if(currentGameMode === 'adventure') generateGameMap(); else changeGameMode('diandux'); }
+                audioContext.decodeAudioData(savedArrayBuffer.slice(0), (buffer) => {
+                    audioBuffer = buffer; sliceAudioIntelligently(buffer, story.length);
+                });
+            } else { 
+                // 刷新大按钮文字样式
+                refreshTTSButtonVisualState(false);
+                if(currentGameMode === 'adventure') generateGameMap(); else changeGameMode('diandux'); 
+            }
+        }
+
+        // 🌟 动态自适应按钮样式切换中枢
+        function refreshTTSButtonVisualState(hasParentAudio) {
+            const ttsBtn = document.getElementById('ttsBtn');
+            if (hasParentAudio) {
+                ttsBtn.classList.add('parent-active-style');
+                ttsBtn.innerText = "🔊 听家长示范读";
+            } else {
+                ttsBtn.classList.remove('parent-active-style');
+                ttsBtn.innerText = "🔊 听 AI 外教读";
+            }
         }
 
         function restoreCourseProgress(courseName) { const cachedProgress = localStorage.getItem(`yimo_progress_${courseName}`); clearedLevels = cachedProgress ? new Set(JSON.parse(cachedProgress)) : new Set(); }
@@ -519,7 +565,8 @@
                 clearedLevels = new Set(); saveCourseProgressToStorage(currentCourseName);
                 const transaction = dbInstance.transaction(["passed_voices"], "readwrite");
                 transaction.objectStore("passed_voices").openCursor().onsuccess = (e) => { const cursor = e.target.result; if (cursor) { if (cursor.key.startsWith(currentCourseName + "_")) cursor.delete(); cursor.continue(); } };
-                document.getElementById('badge').style.display = 'none'; generateGameMap(); document.getElementById('statusMessage').innerText = "🔄 关卡进度已清空重置！";
+                document.getElementById('badge').style.display = 'none';
+                generateGameMap(); document.getElementById('statusMessage').innerText = "🔄 关卡进度已清空重置！";
             }
         }
 
@@ -561,6 +608,10 @@
                 for (let i = 0; i < numCuts; i++) { currentAccumulatedTime += (buffer.duration * (wordCounts[i] / totalWords)); sentenceTimestamps.push(parseFloat(currentAccumulatedTime.toFixed(3))); }
             }
             sentenceTimestamps.push(buffer.duration);
+            
+            // 激活样式
+            refreshTTSButtonVisualState(true);
+
             if(currentGameMode === 'adventure') generateGameMap(); else changeGameMode('diandux');
         }
 
@@ -582,15 +633,33 @@
             if (!foundTarget && nodesData.length > 0) autoTargetIdx = nodesData.length - 1;
             document.getElementById('ttsBtn').disabled = false; document.getElementById('micBtn').disabled = false;
             document.getElementById('passBtn').style.display = 'inline-block';
+            
+            // 同步全局底部大声公颜色
+            refreshTTSButtonVisualState(audioBuffer !== null);
+
             updateStars(); loadLevel(autoTargetIdx);
         }
 
-        // =================【🎵 播放调度机制】=================
+        // =================【🎵 🌟 智能合并单轨音频核心路由】=================
+        function smartAdaptivePlaybackRouter() {
+            const now = Date.now();
+            if (now - lastClickTimeLock < 400) return; // 🌟 冲关大按钮物理防抖锁
+            lastClickTimeLock = now;
+
+            // 优先执行高精度判断路由：有家长音放家长，无则放微软 AI
+            if (audioBuffer) {
+                playParentAudio();
+            } else {
+                playMicrosoftAudio();
+            }
+        }
+
         async function playMicrosoftAudio() {
-            if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
-            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); clearInterval(highlightTimer);
+            forceKillAllBackgroundVoices(); // 🌟 瞬杀旧音轨
+
+            let targetIdx = (currentGameMode === 'adventure') ? currentIndex : currentDianduxLineIdx;
+            let textToSpeak = story[targetIdx].replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
             
-            let textToSpeak = story[currentIndex].replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
             if (currentGameMode === 'adventure') {
                 const node = nodesData[currentIndex]; if (!node) return;
                 textToSpeak = node.type === 'normal' ? node.en : node.targetNodesInfo.map(info => nodesData[info.mapIdx].en).join(". ");
@@ -603,7 +672,7 @@
                 const blob = await response.blob(); const audioUrl = URL.createObjectURL(blob);
                 currentAiAudio = new Audio(audioUrl); currentAiAudio.play();
                 
-                const wordIdList = renderSubtitle(nodesData[currentIndex]); let timePerWord = (380 / currentPlaybackRate); let currentWordPointer = 0;
+                const wordIdList = renderSubtitle(nodesData[targetIdx]); let timePerWord = (380 / currentPlaybackRate); let currentWordPointer = 0;
                 highlightTimer = setInterval(() => {
                     document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight')); let currentItem = wordIdList[currentWordPointer];
                     if (currentItem) {
@@ -612,27 +681,30 @@
                         const currentSpan = document.getElementById(targetId); if (currentSpan) currentSpan.classList.add('highlight'); currentWordPointer++;
                     } else clearInterval(highlightTimer);
                 }, timePerWord);
-            } catch (err) { document.getElementById('statusMessage').innerText = "❌ 调取 AI 失败，请检查 5034 后端。"; }
+            } catch (err) { document.getElementById('statusMessage').innerText = "❌ 调取 AI 失败，请确认 5034 后端。"; }
         }
 
         function playParentAudio() {
-            initAudioContext(); if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
-            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); activeSourcesList = []; clearInterval(highlightTimer);
+            initAudioContext(); 
+            forceKillAllBackgroundVoices(); // 🌟 瞬杀旧音轨
+
             if (!audioBuffer) return;
 
             let playQueue = []; let totalDuration = 0;
-            if (currentGameMode === 'diandux' || nodesData[currentIndex].type === 'normal') {
-                let start = sentenceTimestamps[currentIndex]; let end = sentenceTimestamps[currentIndex + 1];
+            let targetIdx = (currentGameMode === 'adventure') ? currentIndex : currentDianduxLineIdx;
+
+            if (currentGameMode === 'diandux' || nodesData[targetIdx].type === 'normal') {
+                let start = sentenceTimestamps[targetIdx]; let end = sentenceTimestamps[targetIdx + 1];
                 playQueue.push({ start, duration: end - start, delay: 0 }); totalDuration = (end - start) / currentPlaybackRate;
             } else {
-                const node = nodesData[currentIndex]; let currentDelay = 0; 
+                const node = nodesData[targetIdx]; let currentDelay = 0; 
                 node.targetNodesInfo.forEach(info => {
                     let start = sentenceTimestamps[info.scriptIdx]; let end = sentenceTimestamps[info.scriptIdx + 1];
                     playQueue.push({ start, duration: end - start, delay: currentDelay }); currentDelay += ((end - start) / currentPlaybackRate);
                 }); totalDuration = currentDelay;
             }
 
-            const wordIdList = renderSubtitle(nodesData[currentIndex]); let timePerWord = (totalDuration * 1000) / wordIdList.length; let currentWordPointer = 0;
+            const wordIdList = renderSubtitle(nodesData[targetIdx]); let timePerWord = (totalDuration * 1000) / wordIdList.length; let currentWordPointer = 0;
             highlightTimer = setInterval(() => {
                 document.querySelectorAll('.word-span').forEach(s => s.classList.remove('highlight')); let currentItem = wordIdList[currentWordPointer];
                 if (currentItem) {
@@ -645,19 +717,19 @@
             playQueue.forEach(item => { setTimeout(() => { let source = audioContext.createBufferSource(); source.buffer = audioBuffer; source.playbackRate.value = currentPlaybackRate; source.connect(audioContext.destination); source.start(0, item.start, item.duration); activeSourcesList.push(source); }, item.delay * 1000); });
         }
 
-        function playKidsAudio() { activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); if (kidsAudioBlobUrl) { kidsAudioPlayer.src = kidsAudioBlobUrl; kidsAudioPlayer.play(); } }
-        function playHistoryPassAudio() { if (historyPassAudioUrl) { if (currentAiAudio) currentAiAudio.pause(); activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} }); kidsAudioPlayer.src = historyPassAudioUrl; kidsAudioPlayer.play(); } }
+        function playKidsAudio() { forceKillAllBackgroundVoices(); if (kidsAudioBlobUrl) { kidsAudioPlayer.src = kidsAudioBlobUrl; kidsAudioPlayer.play(); } }
+        function playHistoryPassAudio() { forceKillAllBackgroundVoices(); if (historyPassAudioUrl) { kidsAudioPlayer.src = historyPassAudioUrl; kidsAudioPlayer.play(); } }
 
         async function loadLevel(idx) {
             if (nodesData.length === 0) return; if (idx > 0 && !clearedLevels.has(idx - 1) && idx !== currentIndex) { document.getElementById('statusMessage').innerText = "🔒 前方的领地还在被怪兽占领哦！"; return; }
-            if (currentAiAudio) currentAiAudio.pause(); if (kidsAudioPlayer && !kidsAudioPlayer.paused) kidsAudioPlayer.pause();
-            activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
+            forceKillAllBackgroundVoices();
 
             document.getElementById('playMyAudioBtn').style.display = 'none'; document.getElementById('playHistoryAudioBtn').style.display = 'none';
-            document.getElementById('playParentAudioBtn').style.display = audioBuffer ? 'inline-block' : 'none'; 
-            kidsAudioBlobUrl = null; currentPassAudioBlob = null; historyPassAudioUrl = null; clearInterval(highlightTimer);
+            
+            kidsAudioBlobUrl = null; currentPassAudioBlob = null; historyPassAudioUrl = null; 
             currentIndex = idx; const node = nodesData[idx]; renderSubtitle(node);
             const bossArea = document.getElementById('bossArea'); if (node.type === 'boss') { bossArea.style.display = 'block'; document.getElementById('bossHp').style.width = clearedLevels.has(idx) ? '0%' : '100%'; } else { bossArea.style.display = 'none'; }
+            
             document.querySelectorAll('.level-node').forEach((n, nIdx) => { n.classList.remove('active'); if (nIdx === currentIndex) n.classList.add('active'); });
             const select = document.getElementById('courseSelect'); if (select.value) { const savedBlob = await getAudioFromDB("passed_voices", select.value + "_" + idx); if (savedBlob) { historyPassAudioUrl = URL.createObjectURL(savedBlob); document.getElementById('playHistoryAudioBtn').style.display = 'inline-block'; } }
             updateStars();
@@ -672,10 +744,10 @@
 
         // =================【🎤 本地微电压声音雷达自动断句评分引擎】=================
         async function toggleSmartAutoRecording() {
-            initAudioContext(); if (currentAiAudio) currentAiAudio.pause(); activeSourcesList.forEach(s => { try{ s.stop(); }catch(e){} });
+            initAudioContext(); forceKillAllBackgroundVoices();
             const micBtn = document.getElementById('micBtn');
             if (isListening) { stopSmartRecordingAndScore(); } else {
-                try { audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (err) { alert("麦克风不可用。"); return; }
+                try { audioStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (err) { alert("麦克风权限受阻。"); return; }
                 isListening = true; kidsAudioChunks = []; currentPassAudioBlob = null; document.getElementById('playMyAudioBtn').style.display = 'none'; document.getElementById('scoreDisplay').innerText = "";
                 micBtn.className = "recording"; micBtn.innerText = "🛑 停止并计算大招";
                 document.getElementById('statusMessage').innerText = "🔴 声音雷达工作中！允许 8 秒静音断续。读完后保持安静即可自动结算录音！";
@@ -721,13 +793,45 @@
             let localBaseScore = 86 + Math.floor(Math.random() * 10);
             let finalScore = Math.min(100, Math.max(65, localBaseScore));
             document.getElementById('scoreDisplay').innerText = finalScore + "分";
-            if (currentGameMode === 'diandux') { document.getElementById('statusMessage').innerHTML = "🎯 点读句录音成功！已同步暂存。"; return; }
-            if (finalScore >= 75) { document.getElementById('statusMessage').innerHTML = "🌟 斩获了 " + finalScore + " 分！"; forcePass(); } 
-            else { document.getElementById('statusMessage').innerHTML = "👍 声音真响亮！拿到了 " + finalScore + " 分，再来一次！"; }
+            
+            if (currentGameMode === 'diandux') {
+                const select = document.getElementById('courseSelect').value;
+                if (select && currentPassAudioBlob) saveAudioToDB("passed_voices", select + "_" + currentDianduxLineIdx, currentPassAudioBlob);
+                document.getElementById('statusMessage').innerHTML = "🎯 点读句录音成功！已同步暂存。";
+                return; 
+            }
+
+            if (finalScore >= 75) {
+                document.getElementById('statusMessage').innerHTML = "🌟 斩获了 " + finalScore + " 分！";
+                forcePass();
+            } else { document.getElementById('statusMessage').innerHTML = "👍 声音真响亮！拿到了 " + finalScore + " 分，再来一次！"; }
         }
 
         function playCorrectSound() { let osc = audioContext.createOscillator(); let gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.frequency.setValueAtTime(523.25, audioContext.currentTime); osc.start(); osc.stop(audioContext.currentTime + 0.15); }
         function playExplodeSound() { let osc = audioContext.createOscillator(); let gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioContext.currentTime); osc.start(); osc.stop(audioContext.currentTime + 0.6); }
+
+        function renderSubtitle(node) {
+            const container = document.getElementById('engText'); container.innerHTML = ""; clearInterval(highlightTimer); let wordTrackingArray = []; if (nodesData.length === 0) return wordTrackingArray;
+            let textSource = "";
+            if (currentGameMode === 'diandux') {
+                textSource = story[currentDianduxLineIdx].replace(/[\u4e00-\u9fa5]|（[^）]*）|\([^)]*\)/g, "").trim();
+                const div = document.createElement('div'); div.className = "word-container";
+                textSource.split(" ").filter(Boolean).forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = "span-0-" + wIdx; span.innerText = word + " "; div.appendChild(span); wordTrackingArray.push("span-0-" + wIdx); }); container.appendChild(div);
+            } else {
+                if (node.type === 'normal') {
+                    const div = document.createElement('div'); div.className = "word-container";
+                    node.en.split(" ").filter(Boolean).forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = "span-0-" + wIdx; span.innerText = word + " "; div.appendChild(span); wordTrackingArray.push("span-0-" + wIdx); }); container.appendChild(div);
+                } else {
+                    node.targetNodesInfo.forEach((info, order) => {
+                        const blockDiv = document.createElement('div'); blockDiv.className = "boss-sentence-block b-block-" + order; if(order === 0) blockDiv.classList.add('active-sentence');
+                        const englishRow = document.createElement('div'); englishRow.className = 'boss-english-row';
+                        nodesData[info.mapIdx].en.split(" ").filter(Boolean).forEach((word, wIdx) => { const span = document.createElement('span'); span.className = 'word-span'; span.id = "span-" + order + "-" + wIdx; span.innerText = word + " "; englishRow.appendChild(span); wordTrackingArray.push({ id: "span-" + order + "-" + wIdx, block: order }); });
+                        blockDiv.appendChild(englishRow); container.appendChild(blockDiv);
+                    });
+                }
+            }
+            return wordTrackingArray;
+        }
     </script>
 </body>
 </html>
